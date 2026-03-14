@@ -1,3 +1,12 @@
+# This workflow runs on every push and pull request, and performs the following steps:
+# 1. Checks out the code
+# 2. Installs the Rust toolchain with rustfmt and clippy components
+# 3. Caches the Cargo registry and build artifacts to speed up subsequent runs
+# 4. Runs rustfmt to check code formatting
+# 5. Runs Clippy to check for code issues and warnings
+# 6. Compiles the code
+# 7. Runs tests
+# 8. Compiles the TypeScript VSCode extension
 
 name: CI
 
