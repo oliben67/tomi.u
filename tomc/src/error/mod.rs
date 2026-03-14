@@ -122,9 +122,7 @@ impl CompileError {
             Self::UnterminatedComment { .. } => {
                 Some("add '###' to close the multi-line comment".into())
             }
-            Self::InvalidEscape { ch, .. } => Some(format!(
-                "valid escape sequences are: \\n, \\t, \\r, \\\\, \\\", \\', \\0, \\x{{HH}}, \\u{{HHHH}}"
-            )),
+            Self::InvalidEscape { ch: _, .. } => Some("valid escape sequences are: \\n, \\t, \\r, \\\\, \\\", \\', \\0, \\x{HH}, \\u{HHHH}".to_string()),
             Self::InconsistentIndentation { .. } => {
                 Some("use consistent spaces (recommended: 4 spaces) for indentation".into())
             }

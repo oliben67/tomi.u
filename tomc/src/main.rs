@@ -650,11 +650,10 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
 
-        if emit.code {
-            if cli.verbose {
+        if emit.code
+            && cli.verbose {
                 eprintln!("{} wrote Rust source → {}", "info:".cyan().bold(), rs_path.display());
             }
-        }
 
         // Binary output path
         let bin_path = cli.output.clone().unwrap_or_else(|| {
