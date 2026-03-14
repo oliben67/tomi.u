@@ -9,6 +9,7 @@ use std::time::Instant;
 
 use clap::{Parser, ValueEnum};
 use colored::Colorize;
+use tomc::checker::TypeChecker;
 use tomc::codegen::{Backend, CodeGenerator};
 use tomc::error::ErrorReporter;
 use tomc::lexer::Lexer;
@@ -217,7 +218,12 @@ struct CodegenConfig {
 
 impl Default for CodegenConfig {
     fn default() -> Self {
-        Self { opt_level: 0, overflow_checks: true, debug_info: false, lto: false }
+        Self {
+            opt_level: 0,
+            overflow_checks: true,
+            debug_info: false,
+            lto: false,
+        }
     }
 }
 
@@ -465,8 +471,14 @@ fn main() -> ExitCode {
         },
         // Default: produce a native binary for bin albums, Rust source for lib
         None => match cli.album_type {
-            AlbumType::Bin => EmitKinds { bin: true, ..Default::default() },
-            AlbumType::Lib => EmitKinds { code: true, ..Default::default() },
+            AlbumType::Bin => EmitKinds {
+                bin: true,
+                ..Default::default()
+            },
+            AlbumType::Lib => EmitKinds {
+                code: true,
+                ..Default::default()
+            },
         },
     };
     if cli.print_tokens {
@@ -517,7 +529,12 @@ fn main() -> ExitCode {
     let source = match std::fs::read_to_string(&input) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("{}: cannot read `{}`: {}", "error".red().bold(), input.display(), e);
+            eprintln!(
+                "{}: cannot read `{}`: {}",
+                "error".red().bold(),
+                input.display(),
+                e
+            );
             return ExitCode::FAILURE;
         }
     };
@@ -543,7 +560,12 @@ fn main() -> ExitCode {
         }
     };
     if cli.verbose {
-        eprintln!("{} lexed {} tokens ({:?})", "info:".cyan().bold(), tokens.len(), t0.elapsed());
+        eprintln!(
+            "{} lexed {} tokens ({:?})",
+            "info:".cyan().bold(),
+            tokens.len(),
+            t0.elapsed()
+        );
     }
 
     if emit.tokens {
@@ -589,6 +611,29 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
+    // -----------------------------------------------------------------
+    // Type checking
+    // -----------------------------------------------------------------
+    if cli.verbose {
+        eprintln!("{} type checking…", "info:".cyan().bold());
+    }
+    let t_tc = Instant::now();
+    let mut checker = TypeChecker::new();
+    let type_errors = checker.check_module(&ast);
+    if !type_errors.is_empty() {
+        for e in &type_errors {
+            reporter.report(e);
+        }
+        return ExitCode::FAILURE;
+    }
+    if cli.verbose {
+        eprintln!(
+            "{} type check passed ({:?})",
+            "info:".cyan().bold(),
+            t_tc.elapsed()
+        );
+    }
+
     if !emit.code && !emit.bin {
         if cli.verbose {
             eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed());
@@ -613,22 +658,43 @@ fn main() -> ExitCode {
         }
     };
     if cli.verbose {
-        eprintln!("{} codegen done ({:?})", "info:".cyan().bold(), t2.elapsed());
+        eprintln!(
+            "{} codegen done ({:?})",
+            "info:".cyan().bold(),
+            t2.elapsed()
+        );
     }
 
     // -----------------------------------------------------------------
     // Write output
     // -----------------------------------------------------------------
-    let stem = input.file_stem().unwrap_or_default().to_string_lossy().to_string();
+    let stem = input
+        .file_stem()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
 
     // ---- emit: code (Rust source) ----
     if emit.code && !emit.bin {
-        let rs_path = cli.output.clone().unwrap_or_else(|| PathBuf::from(format!("{stem}.rs")));
+        let rs_path = cli
+            .output
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(format!("{stem}.rs")));
         if let Err(e) = std::fs::write(&rs_path, &output_code) {
-            eprintln!("{}: cannot write `{}`: {}", "error".red().bold(), rs_path.display(), e);
+            eprintln!(
+                "{}: cannot write `{}`: {}",
+                "error".red().bold(),
+                rs_path.display(),
+                e
+            );
             return ExitCode::FAILURE;
         }
-        println!("{} {} → {}", "✓".green().bold(), input.display(), rs_path.display());
+        println!(
+            "{} {} → {}",
+            "✓".green().bold(),
+            input.display(),
+            rs_path.display()
+        );
     }
 
     // ---- emit: bin (native binary via rustc) ----
@@ -651,16 +717,28 @@ fn main() -> ExitCode {
         }
 
         if emit.code && cli.verbose {
-            eprintln!("{} wrote Rust source → {}", "info:".cyan().bold(), rs_path.display());
+            eprintln!(
+                "{} wrote Rust source → {}",
+                "info:".cyan().bold(),
+                rs_path.display()
+            );
         }
 
         // Binary output path
         let bin_path = cli.output.clone().unwrap_or_else(|| {
-            if cfg!(windows) { PathBuf::from(format!("{stem}.exe")) } else { PathBuf::from(&stem) }
+            if cfg!(windows) {
+                PathBuf::from(format!("{stem}.exe"))
+            } else {
+                PathBuf::from(&stem)
+            }
         });
 
         if cli.verbose {
-            eprintln!("{} invoking rustc → {}", "info:".cyan().bold(), bin_path.display());
+            eprintln!(
+                "{} invoking rustc → {}",
+                "info:".cyan().bold(),
+                bin_path.display()
+            );
         }
 
         let mut rustc_cmd = Command::new("rustc");
@@ -700,7 +778,10 @@ fn main() -> ExitCode {
         };
 
         if !rustc_out.status.success() {
-            eprintln!("{}: rustc error while compiling generated code:", "error".red().bold());
+            eprintln!(
+                "{}: rustc error while compiling generated code:",
+                "error".red().bold()
+            );
             eprintln!("{}", String::from_utf8_lossy(&rustc_out.stderr));
             if !emit.code {
                 let _ = std::fs::remove_file(&rs_path);
@@ -713,7 +794,12 @@ fn main() -> ExitCode {
             let _ = std::fs::remove_file(&rs_path);
         }
 
-        println!("{} {} → {}", "✓".green().bold(), input.display(), bin_path.display());
+        println!(
+            "{} {} → {}",
+            "✓".green().bold(),
+            input.display(),
+            bin_path.display()
+        );
     }
 
     if cli.verbose {
