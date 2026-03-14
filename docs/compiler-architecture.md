@@ -9,18 +9,19 @@
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Compilation Unit: Album](#compilation-unit-album)
-3. [Modular Architecture](#modular-architecture)
-4. [Intermediate Representation (IR)](#intermediate-representation-ir)
-5. [Advanced Optimization Passes](#advanced-optimization-passes)
-6. [Just-In-Time (JIT) Compilation](#just-in-time-jit-compilation)
-7. [Incremental & Lazy Compilation](#incremental--lazy-compilation)
-8. [Link-Time Optimization (LTO)](#link-time-optimization-lto)
-9. [Profile-Guided Optimization (PGO)](#profile-guided-optimization-pgo)
-10. [Static Analysis & Security Checks](#static-analysis--security-checks)
-11. [Error Diagnostics](#error-diagnostics)
-12. [Implementation Roadmap](#implementation-roadmap)
-13. [References](#references)
+2. [CLI Reference](#cli-reference)
+3. [Compilation Unit: Album](#compilation-unit-album)
+4. [Modular Architecture](#modular-architecture)
+5. [Intermediate Representation (IR)](#intermediate-representation-ir)
+6. [Advanced Optimization Passes](#advanced-optimization-passes)
+7. [Just-In-Time (JIT) Compilation](#just-in-time-jit-compilation)
+8. [Incremental & Lazy Compilation](#incremental--lazy-compilation)
+9. [Link-Time Optimization (LTO)](#link-time-optimization-lto)
+10. [Profile-Guided Optimization (PGO)](#profile-guided-optimization-pgo)
+11. [Static Analysis & Security Checks](#static-analysis--security-checks)
+12. [Error Diagnostics](#error-diagnostics)
+13. [Implementation Roadmap](#implementation-roadmap)
+14. [References](#references)
 
 ---
 
@@ -47,6 +48,219 @@ The architecture prioritizes:
 - **Developer Experience**: Fast incremental compilation, excellent error messages, and seamless tooling integration
 - **Safety**: Built-in static analysis and security vulnerability detection
 - **Flexibility**: Support for AOT compilation, JIT compilation, and interpreted execution via Python bridge
+
+---
+
+## CLI Reference
+
+### Synopsis
+
+```sh
+tomc [OPTIONS] [INPUT]
+```
+
+`INPUT` is the path to a `.tomi` source file. Most flags have short forms that mirror `rustc` conventions.
+
+---
+
+### Input / Output Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `<INPUT>` | — | *(required)* | Path to the `.tomi` source file to compile |
+| `--output <FILE>` | `-o` | `<INPUT_STEM>.<ext>` | Write generated output to `FILE` |
+| `--target <TARGET>` | `-t` | `rust` | Code generation backend. Currently `rust` only; `c` and `llvm` are planned |
+
+---
+
+### Compilation Mode Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--check` | off | Parse and type-check only — no output file is written. Fast syntax validation |
+| `--edition <YEAR>` | `2024` | tomi.u language edition to compile against. Currently only `2024` |
+| `--album-type <TYPE>` | `bin` | Type of artifact to produce: `bin` (executable) or `lib` (importable library) |
+
+---
+
+### Emit Flags
+
+Control what the compiler outputs with `--emit KIND,...` (comma-separated list).
+
+| Kind | Description |
+|------|-------------|
+| `code` | Generated source code in the target language (default when none specified) |
+| `tokens` | Lexer token stream printed to stdout |
+| `ast` | Parsed AST structure printed to stdout |
+| `metadata` | Album metadata summary (name, edition, album-type, target, opt-level, tomc version) |
+
+**Examples:**
+
+```sh
+# Default: write code to file
+tomc src/main.tomi
+
+# Dump tokens and AST to stdout, also write code
+tomc src/main.tomi --emit tokens,ast,code
+
+# Only show metadata, no files written
+tomc src/main.tomi --emit metadata
+
+# Syntax check only (no output)
+tomc src/main.tomi --check
+```
+
+> **Deprecated aliases:** `--print-tokens` (use `--emit tokens`) and `--print-ast` (use `--emit ast`) are kept for backward compatibility but hidden from help.
+
+---
+
+### Codegen Options (`-C`)
+
+Codegen options follow the pattern `-C KEY` or `-C KEY=VALUE` and control low-level code generation behaviour.
+
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| `opt-level` | `0` `1` `2` `3` | `0` | Optimisation level. `0` = no optimisations (fast compile, good for debug); `3` = aggressive optimisations (slow compile, best runtime) |
+| `overflow-checks` | `yes` `no` | `yes` | Emit integer overflow checks. Disable for maximum performance in release builds |
+| `debug-info` | `yes` `no` | `no` | Embed source-level debug information in the output |
+| `lto` | `yes` `no` | `no` | Enable link-time optimisation. Produces smaller, faster binaries at the cost of longer link times |
+
+Boolean values accept `yes`/`true`/`on`/`1` and `no`/`false`/`off`/`0`.
+
+**Examples:**
+
+```sh
+# Debug build (default)
+tomc src/main.tomi
+
+# Optimised release build with LTO, no overflow checks
+tomc src/main.tomi -C opt-level=3 -C lto=yes -C overflow-checks=no
+
+# Debug build with debug info embedded
+tomc src/main.tomi -C debug-info=yes
+```
+
+---
+
+### Lint Flags
+
+Lints control compiler warnings. Multiple lints can be specified by repeating the flag.
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--warn <LINT>` | `-W` | Emit a warning for the named lint (default level for most lints) |
+| `--deny <LINT>` | `-D` | Treat the named lint as an error, failing the build |
+| `--allow <LINT>` | `-A` | Silence the named lint entirely |
+
+**Available lints:**
+
+| Lint | Description |
+|------|-------------|
+| `unused-variables` | Variable declared but never read |
+| `unused-parameters` | Function parameter declared but never used |
+| `unused-imports` | Imported symbol never referenced |
+| `dead-code` | Function or type defined but never called/used |
+| `unreachable-code` | Code that can never be executed |
+| `unused-mut` | Variable declared `mut` but never mutated |
+| `warnings` | Meta-lint: controls all warnings at once |
+
+**Examples:**
+
+```sh
+# Deny all warnings (strict mode)
+tomc src/main.tomi -D warnings
+
+# Warn on dead code but allow unused variables
+tomc src/main.tomi -W dead-code -A unused-variables
+
+# Treat unused imports as errors in CI
+tomc src/main.tomi -D unused-imports
+```
+
+---
+
+### Diagnostic Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--verbose` | `-v` | off | Print per-stage timing information (lexing, parsing, codegen) and configuration summary |
+| `--color <MODE>` | — | `auto` | Control ANSI colour output: `auto` (detect terminal), `always`, or `never` |
+| `--explain <CODE>` | — | — | Print a detailed human-readable explanation for a compiler error code (e.g. `E0001`). Standalone — no input file needed |
+
+---
+
+### Error Codes (`--explain`)
+
+All error codes have detailed explanations available via `tomc --explain <CODE>`.
+
+| Code | Name | Description |
+|------|------|-------------|
+| `E0001` | Unexpected token | A token appeared where a different token was expected |
+| `E0002` | Unterminated string literal | A `"` string was opened but never closed |
+| `E0003` | Unexpected end of file | Source ended while inside an open construct |
+| `E0004` | Expected identifier | An identifier was required but another token was found |
+| `E0005` | Invalid numeric literal | A number literal had an unrecognised format |
+| `E0006` | Expected indented block | A block-starting keyword was not followed by indented code |
+| `E0007` | Inconsistent indentation | Mixed or irregular indentation inside a block |
+| `E0008` | Invalid escape sequence | An unrecognised `\` escape in a string literal |
+| `E0009` | Expected `:` after function signature | `def foo()` not followed by `:` |
+| `E0010` | Mismatched parentheses or brackets | An opener `(` `[` `{` was never closed |
+
+**Example:**
+
+```sh
+tomc --explain E0006
+```
+
+---
+
+### Meta Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--version` | `-V` | Print the tomc version and exit |
+| `--help` | `-h` | Print a short help summary. Use `--help` (long) for full flag descriptions |
+
+---
+
+### Quick-Reference Card
+
+```
+tomc [INPUT] [OPTIONS]
+
+Input / Output
+  <INPUT>                 Source .tomi file
+  -o, --output <FILE>     Output file path
+  -t, --target <TARGET>   Backend: rust (default)
+
+Compilation Mode
+  --check                 Syntax check only, no output
+  --edition <YEAR>        Language edition (default: 2024)
+  --album-type <TYPE>     Artifact type: bin (default) | lib
+
+Emit
+  --emit <KIND,...>       tokens | ast | code | metadata
+
+Codegen  (-C KEY[=VALUE])
+  -C opt-level=<0-3>      Optimisation level (default: 0)
+  -C overflow-checks=yes  Integer overflow checks (default: yes)
+  -C debug-info=no        Embed debug info (default: no)
+  -C lto=no               Link-time optimisation (default: no)
+
+Lints
+  -W <LINT>               Warn
+  -D <LINT>               Deny (error)
+  -A <LINT>               Allow
+
+Diagnostics
+  -v, --verbose           Per-stage timing
+  --color auto|always|never
+  --explain <CODE>        Detailed error explanation (e.g. E0001)
+
+Meta
+  -V, --version
+  -h, --help
+```
 
 ---
 
