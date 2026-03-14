@@ -360,3 +360,40 @@ def main():
     assert!(rust.contains("fn 计算"));
     assert!(rust.contains("let 结果"));
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// hello.tomi — compile the canonical example and verify output
+// ═══════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_compile_hello_tomi() {
+    // Read the canonical hello.tomi example from the repository
+    let hello_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("examples/hello.tomi");
+
+    let source = fs::read_to_string(&hello_path)
+        .unwrap_or_else(|e| panic!("Could not read examples/hello.tomi: {e}"));
+
+    // Compile through the full pipeline
+    let rust = compile(&source)
+        .unwrap_or_else(|e| panic!("hello.tomi compilation failed: {e}"));
+
+    // --- structural checks ---
+    // Must contain a main function
+    assert!(rust.contains("fn main()"), "output should have fn main(), got:\n{rust}");
+
+    // Must declare the message variable with the correct string
+    assert!(
+        rust.contains("\"Hello, World!\""),
+        "output should contain Hello, World! string literal, got:\n{rust}"
+    );
+
+    // Must include a call to print with 'message'
+    assert!(
+        rust.contains("print(message)"),
+        "output should call print(message), got:\n{rust}"
+    );
+
+    // Must NOT be empty (sanity)
+    assert!(!rust.trim().is_empty(), "generated output should not be empty");
+}

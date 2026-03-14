@@ -45,8 +45,8 @@ struct Cli {
     edition: Edition,
 
     /// Type of artifact to produce
-    #[arg(long, value_enum, default_value_t = CrateType::Bin)]
-    crate_type: CrateType,
+    #[arg(long, value_enum, default_value_t = AlbumType::Bin)]
+    album_type: AlbumType,
 
     /// Set a codegen option: KEY or KEY=VALUE
     ///
@@ -139,19 +139,19 @@ impl fmt::Display for Edition {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, ValueEnum, Debug, Default)]
-enum CrateType {
-    /// Compile a binary executable
+enum AlbumType {
+    /// Compile a binary executable album
     #[default]
     Bin,
-    /// Compile a library
+    /// Compile a library album
     Lib,
 }
 
-impl fmt::Display for CrateType {
+impl fmt::Display for AlbumType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CrateType::Bin => write!(f, "bin"),
-            CrateType::Lib => write!(f, "lib"),
+            AlbumType::Bin => write!(f, "bin"),
+            AlbumType::Lib => write!(f, "lib"),
         }
     }
 }
@@ -438,8 +438,8 @@ fn main() -> ExitCode {
     if cli.verbose {
         eprintln!("{} tomc {} (edition {})", "info:".cyan().bold(), env!("CARGO_PKG_VERSION"), cli.edition);
         eprintln!("{} compiling `{}`", "info:".cyan().bold(), input.display());
-        eprintln!("{} target={}, crate-type={}, opt-level={}", "info:".cyan().bold(),
-            cli.target, cli.crate_type, codegen_cfg.opt_level);
+        eprintln!("{} target={}, album-type={}, opt-level={}", "info:".cyan().bold(),
+            cli.target, cli.album_type, codegen_cfg.opt_level);
     }
 
     let start = Instant::now();
@@ -550,7 +550,7 @@ fn main() -> ExitCode {
         println!("{}", "=== Metadata ===".cyan().bold());
         println!("  name:      {name}");
         println!("  edition:   {}", cli.edition);
-        println!("  crate-type:{}", cli.crate_type);
+        println!("  album-type: {}", cli.album_type);
         println!("  target:    {}", cli.target);
         println!("  opt-level: {}", codegen_cfg.opt_level);
         println!("  tomc:      {}", env!("CARGO_PKG_VERSION"));

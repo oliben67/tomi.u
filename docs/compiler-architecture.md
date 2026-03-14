@@ -9,17 +9,18 @@
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Modular Architecture](#modular-architecture)
-3. [Intermediate Representation (IR)](#intermediate-representation-ir)
-4. [Advanced Optimization Passes](#advanced-optimization-passes)
-5. [Just-In-Time (JIT) Compilation](#just-in-time-jit-compilation)
-6. [Incremental & Lazy Compilation](#incremental--lazy-compilation)
-7. [Link-Time Optimization (LTO)](#link-time-optimization-lto)
-8. [Profile-Guided Optimization (PGO)](#profile-guided-optimization-pgo)
-9. [Static Analysis & Security Checks](#static-analysis--security-checks)
-10. [Error Diagnostics](#error-diagnostics)
-11. [Implementation Roadmap](#implementation-roadmap)
-12. [References](#references)
+2. [Compilation Unit: Album](#compilation-unit-album)
+3. [Modular Architecture](#modular-architecture)
+4. [Intermediate Representation (IR)](#intermediate-representation-ir)
+5. [Advanced Optimization Passes](#advanced-optimization-passes)
+6. [Just-In-Time (JIT) Compilation](#just-in-time-jit-compilation)
+7. [Incremental & Lazy Compilation](#incremental--lazy-compilation)
+8. [Link-Time Optimization (LTO)](#link-time-optimization-lto)
+9. [Profile-Guided Optimization (PGO)](#profile-guided-optimization-pgo)
+10. [Static Analysis & Security Checks](#static-analysis--security-checks)
+11. [Error Diagnostics](#error-diagnostics)
+12. [Implementation Roadmap](#implementation-roadmap)
+13. [References](#references)
 
 ---
 
@@ -46,6 +47,56 @@ The architecture prioritizes:
 - **Developer Experience**: Fast incremental compilation, excellent error messages, and seamless tooling integration
 - **Safety**: Built-in static analysis and security vulnerability detection
 - **Flexibility**: Support for AOT compilation, JIT compilation, and interpreted execution via Python bridge
+
+---
+
+## Compilation Unit: Album
+
+The primary compilation unit in tomi.u is the **album** — analogous to a Rust *crate* or a Java *package*. An album is a tree of source files (`.tomi`) that the compiler processes as a single logical unit, producing one output artifact.
+
+### Album Types
+
+| Album Type | CLI flag | Description | Requirement |
+|------------|----------|-------------|-------------|
+| `bin` | `--album-type bin` | Executable binary album (default) | Must have a `@entrypoint def main()` |
+| `lib` | `--album-type lib` | Library album, importable by other albums | No entrypoint required |
+
+### Album Manifest (`Album.toml`)
+
+Each album is described by a manifest file at its root:
+
+```toml
+[album]
+name    = "my_app"
+version = "0.1.0"
+type    = "bin"
+edition = "2024"
+
+[dependencies]
+standard = "1.0"
+```
+
+### Compiling an Album
+
+```sh
+# Compile a binary album (default)
+tomc --album-type bin src/main.tomi
+
+# Compile a library album
+tomc --album-type lib src/lib.tomi
+
+# Inspect album metadata
+tomc src/main.tomi --emit metadata
+```
+
+### Album vs. Module
+
+| Concept | Scope | Maps to |
+|---------|---------|---------|
+| **Album** | Compilation unit (one binary or library) | Rust crate, Java JAR |
+| **Module** | Namespace within an album (`import a.b.c`) | Rust module, Python package |
+
+Albums are the unit of versioning, distribution, and dependency resolution in the tomi.u ecosystem.
 
 ---
 
