@@ -369,10 +369,10 @@ def main():
 fn test_compile_hello_tomi() {
     // Read the canonical hello.tomi example from the repository
     let hello_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("examples/hello.tomi");
+        .join("../examples/tomc/hello.tomi");
 
     let source = fs::read_to_string(&hello_path)
-        .unwrap_or_else(|e| panic!("Could not read examples/hello.tomi: {e}"));
+        .unwrap_or_else(|e| panic!("Could not read examples/tomc/hello.tomi: {e}"));
 
     // Compile through the full pipeline
     let rust = compile(&source)

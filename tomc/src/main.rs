@@ -554,7 +554,7 @@ fn main() -> ExitCode {
         let rs_path = if emit.code {
             PathBuf::from(format!("{stem}.rs"))
         } else {
-            std::env::temp_dir().join(format!("tomc_{stem}.rs"))
+            std::env::temp_dir().join(format!("tomc_{}_{}.rs", stem, std::process::id()))
         };
 
         if let Err(e) = std::fs::write(&rs_path, &output_code) {
