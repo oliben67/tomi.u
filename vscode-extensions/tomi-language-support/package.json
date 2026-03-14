@@ -1,0 +1,158 @@
+{
+  "name": "tomi-language-support",
+  "displayName": "Tomi Language Support",
+  "description": "Intelligent Tomi language support with syntax highlighting, type checking, and IntelliSense",
+  "version": "0.1.0",
+  "publisher": "tomi-lang",
+  "icon": "images/tomi-icon.svg",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "tomi",
+    "language",
+    "syntax",
+    "highlighting",
+    "intellisense",
+    "type checking"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomi-lang/tomi.git"
+  },
+  "activationEvents": [
+    "onLanguage:tomi"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "tomi",
+        "aliases": [
+          "Tomi",
+          "tomi"
+        ],
+        "extensions": [
+          ".tomi"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/tomi-file-light.svg",
+          "dark": "./images/tomi-file-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tomi",
+        "scopeName": "source.tomi",
+        "path": "./syntaxes/tomi.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "tomi",
+        "path": "./snippets/tomi.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Tomi Language Server",
+      "properties": {
+        "tomi.analysis.typeCheckingMode": {
+          "type": "string",
+          "default": "basic",
+          "enum": [
+            "off",
+            "basic",
+            "strict"
+          ],
+          "enumDescriptions": [
+            "No type checking",
+            "Basic type checking with inference",
+            "Strict type checking with all errors"
+          ],
+          "description": "Defines the default rule set for type checking."
+        },
+        "tomi.analysis.autoImportCompletions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Offer auto-import completions."
+        },
+        "tomi.analysis.diagnosticMode": {
+          "type": "string",
+          "default": "openFilesOnly",
+          "enum": [
+            "openFilesOnly",
+            "workspace"
+          ],
+          "enumDescriptions": [
+            "Analyzes and reports errors on only open files",
+            "Analyzes and reports errors on all files in workspace"
+          ],
+          "description": "Analysis mode for diagnostics."
+        },
+        "tomi.analysis.logLevel": {
+          "type": "string",
+          "default": "Information",
+          "enum": [
+            "Error",
+            "Warning",
+            "Information",
+            "Trace"
+          ],
+          "description": "Logging level for the language server."
+        },
+        "tomi.completion.includeSnippets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include snippets in completions."
+        },
+        "tomi.hover.includeTypes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include type information in hover."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "tomi.restartLanguageServer",
+        "title": "Restart Language Server",
+        "category": "Tomi"
+      },
+      {
+        "command": "tomi.showOutputChannel",
+        "title": "Show Output",
+        "category": "Tomi"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^4.9.4",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.0.2"
+  },
+  "bugs": {
+    "url": "https://github.com/tomi-lang/tomi/issues"
+  },
+  "homepage": "https://github.com/tomi-lang/tomi#readme",
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,190 @@
+{
+  "Function Definition": {
+    "prefix": "def",
+    "body": [
+      "def ${1:function_name}(${2:parameters}) -> ${3:return_type}:",
+      "    ${4:# function body}",
+      "    $0"
+    ],
+    "description": "Define a function"
+  },
+  "Generic Function": {
+    "prefix": "defg",
+    "body": [
+      "def ${1:function_name}<${2:T}>(${3:parameters}) -> ${4:return_type}:",
+      "    ${5:# function body}",
+      "    $0"
+    ],
+    "description": "Define a generic function"
+  },
+  "Class Definition": {
+    "prefix": "class",
+    "body": [
+      "class ${1:ClassName}:",
+      "    def __init__(self, ${2:parameters}):",
+      "        ${3:# constructor body}",
+      "        $0"
+    ],
+    "description": "Define a class"
+  },
+  "Generic Class": {
+    "prefix": "classg",
+    "body": [
+      "class ${1:ClassName}<${2:T}>:",
+      "    def __init__(self, ${3:parameters}):",
+      "        ${4:# constructor body}",
+      "        $0"
+    ],
+    "description": "Define a generic class"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition}:",
+      "    ${2:# if body}",
+      "    $0"
+    ],
+    "description": "If statement"
+  },
+  "For Loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:item} in ${2:iterable}:",
+      "    ${3:# loop body}",
+      "    $0"
+    ],
+    "description": "For loop"
+  },
+  "For Range": {
+    "prefix": "forr",
+    "body": [
+      "for ${1:i} in range(${2:start}, ${3:end}):",
+      "    ${4:# loop body}",
+      "    $0"
+    ],
+    "description": "For loop with range"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition}:",
+      "    ${2:# loop body}",
+      "    $0"
+    ],
+    "description": "While loop"
+  },
+  "Try Catch": {
+    "prefix": "try",
+    "body": [
+      "try:",
+      "    ${1:# try body}",
+      "catch ${2:Exception} as ${3:e}:",
+      "    ${4:# exception handling}",
+      "    $0"
+    ],
+    "description": "Try-catch block"
+  },
+  "Try Catch Else Finally": {
+    "prefix": "tryf",
+    "body": [
+      "try:",
+      "    ${1:# try body}",
+      "catch ${2:Exception} as ${3:e}:",
+      "    ${4:# exception handling}",
+      "else:",
+      "    ${5:# success case}",
+      "finally:",
+      "    ${6:# cleanup}",
+      "    $0"
+    ],
+    "description": "Complete try-catch-else-finally block"
+  },
+  "Try Except (Python style)": {
+    "prefix": "trye",
+    "body": [
+      "try:",
+      "    ${1:# try body}",
+      "except ${2:Exception} as ${3:e}:",
+      "    ${4:# exception handling}",
+      "    $0"
+    ],
+    "description": "Try-except block (Python style)"
+  },
+  "Raise Exception": {
+    "prefix": "raise",
+    "body": [
+      "raise ${1:Exception}(\"${2:error message}\")"
+    ],
+    "description": "Raise an exception"
+  },
+  "Entry Point Marker": {
+    "prefix": "entry",
+    "body": [
+      "::entrypoint def ${1:main}():",
+      "    ${2:# main function body}",
+      "    $0"
+    ],
+    "description": "Entry point function with marker"
+  },
+  "Constructor Marker": {
+    "prefix": "create",
+    "body": [
+      "::create[${1:parameters}]:",
+      "    ${2:# constructor body}",
+      "    $0"
+    ],
+    "description": "Constructor with marker syntax"
+  },
+  "Print Statement": {
+    "prefix": "print",
+    "body": [
+      "print(${1:\"Hello, World!\"})"
+    ],
+    "description": "Print statement"
+  },
+  "Graph Query": {
+    "prefix": "query",
+    "body": [
+      "query ${1:graph} {",
+      "    match (${2:n}:${3:Label})-[:${4:RELATION}]->(${5:m}:${6:Label})",
+      "    return ${7:n.property}",
+      "}"
+    ],
+    "description": "Graph query with Cypher-like syntax"
+  },
+  "Type Annotation": {
+    "prefix": "var",
+    "body": [
+      "${1:variable_name}: ${2:type} = ${3:value}"
+    ],
+    "description": "Variable with type annotation"
+  },
+  "List Type": {
+    "prefix": "list",
+    "body": [
+      "${1:variable_name}: List<${2:T}> = [${3:elements}]"
+    ],
+    "description": "List variable with C# syntax"
+  },
+  "Dict Type": {
+    "prefix": "dict",
+    "body": [
+      "${1:variable_name}: Dict<${2:K}, ${3:V}> = {${4:\"key\": \"value\"}}"
+    ],
+    "description": "Dictionary variable with C# syntax"
+  },
+  "Import Statement": {
+    "prefix": "import",
+    "body": [
+      "import ${1:module_name}"
+    ],
+    "description": "Import statement"
+  },
+  "From Import": {
+    "prefix": "from",
+    "body": [
+      "from ${1:module} import ${2:function_or_class}"
+    ],
+    "description": "From import statement"
+  }
+}

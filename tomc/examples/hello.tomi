@@ -1,0 +1,6 @@
+# A simple hello world program in tomi.u
+
+@entrypoint
+def main():
+    let message = "Hello, World!"
+    print(message)

@@ -1,0 +1,48 @@
+[package]
+name = "tomc"
+version = "0.1.0"
+edition = "2021"
+authors = ["tomi.u Team"]
+description = "The tomi.u compiler - translates tomi.u source code to Rust (and future targets)"
+license = "MIT"
+repository = "https://github.com/tomi-u/tomc"
+keywords = ["compiler", "programming-language", "tomi"]
+categories = ["compilers", "development-tools"]
+
+[dependencies]
+# Lexer
+logos = "0.14"              # Fast lexer generator
+unicode-xid = "0.2"         # Unicode identifier detection
+
+# Parser
+# Using hand-written recursive descent for better error messages
+
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+colored = "2.1"             # Colored terminal output
+
+# Error reporting
+ariadne = "0.4"             # Beautiful error diagnostics
+thiserror = "1.0"           # Error derive macros
+
+# Code generation
+proc-macro2 = "1.0"         # For Rust code generation
+quote = "1.0"               # Rust quasi-quoting
+
+# Utilities
+indexmap = "2.1"            # Ordered hash maps
+smallvec = "1.11"           # Stack-allocated vectors
+
+[dev-dependencies]
+pretty_assertions = "1.4"   # Better test diffs
+insta = "1.34"              # Snapshot testing
+tempfile = "3"              # Temp file handling
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[[bin]]
+name = "tomc"
+path = "src/main.rs"

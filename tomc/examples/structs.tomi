@@ -1,0 +1,13 @@
+# A more complete tomi.u example
+
+struct Point:
+    x: i32
+    y: i32
+
+def add(a: i32, b: i32) -> i32:
+    return a + b
+
+@entrypoint
+def main():
+    let p = Point { x: 10, y: 20 }
+    let sum = add(p.x, p.y)

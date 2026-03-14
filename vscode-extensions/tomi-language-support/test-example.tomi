@@ -1,0 +1,83 @@
+// Test file to verify Tomi syntax highlighting and language server features
+
+# Comments should be highlighted
+'''
+Multi-line comment
+with proper highlighting
+'''
+
+# Import statements
+import os
+from typing import List, Dict
+
+# Function definition with generics and type annotations
+def greet<T>(name: T, age: int) -> str:
+    return f"Hello, {name}! You are {age} years old."
+
+# Generic class definition with C# style syntax
+class Container<T>:
+    def __init__(self, value: T):
+        self.data: T = value
+    
+    def get(self) -> T:
+        return self.data
+
+# Entry point with marker
+::entrypoint def main():
+    # Variable declarations with C# style generics
+    numbers: List<int> = [1, 2, 3, 4, 5]
+    words: List<str> = ["hello", "world"]
+    mapping: Dict<str, int> = {"a": 1, "b": 2}
+    
+    # Function call with explicit type arguments
+    message = greet<str>("Alice", 25)
+    
+    # Class instantiation with generics
+    container = Container<int>(42)
+    text_container = Container<str>("test")
+    
+    # Control flow
+    for i in range(len(numbers)):
+        if numbers[i] > 2:
+            print(f"Number {numbers[i]} is greater than 2")
+    
+    # Graph query syntax (Cypher-like)
+    query graph {
+        match (p:Person)-[:KNOWS]->(friend:Person)
+        where p.age > 18
+        return friend.name
+    }
+    
+    print("Tomi language features working!")
+
+# Class with constructor marker
+class Person:
+    ::create[name, age]:
+        self.name = name
+        self.age = age
+    
+    def introduce(self) -> str:
+        return f"I'm {self.name}, age {self.age}"
+
+# Exception handling (Java/JS style with catch)
+def risky_operation():
+    try:
+        let result = dangerous_call()
+        return result
+    catch ValueError as e:
+        print(f"Caught error: {e}")
+        return None
+    finally:
+        cleanup()
+
+# Exception handling (Python style with except)
+def another_risky_operation():
+    try:
+        let data = fetch_data()
+    except NetworkError:
+        raise "Network connection failed"
+
+# Decorator syntax
+@cached
+def expensive_operation() -> int:
+    return 42 * 42

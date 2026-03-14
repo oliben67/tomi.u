@@ -1,0 +1,64 @@
+# Project-specific
+.copilot
+.copilot/
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# Node.js / VSCode extensions
+node_modules/
+out/
+dist/
+*.vsix
+.vscode-test/
+
+# Build outputs
+build/
+bin/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editors
+.idea/
+*.swp
+*.swo
+*~
+*.orig
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Test artifacts
+*.profraw
+coverage/
+lcov.info

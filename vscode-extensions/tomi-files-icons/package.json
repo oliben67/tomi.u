@@ -1,0 +1,43 @@
+{
+  "name": "tomi-file-icons",
+  "displayName": "Tomi File Icons",
+  "description": "File icons for the Tomi programming language",
+  "version": "0.1.0",
+  "publisher": "tomi-lang",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "tomi",
+    "file-icons",
+    "theme",
+    "programming-language"
+  ],
+  "contributes": {
+    "iconThemes": [
+      {
+        "id": "tomi-icons",
+        "label": "Tomi File Icons",
+        "path": "./theme/tomi-icon-theme.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "tomi",
+        "aliases": ["Tomi", "tomi"],
+        "extensions": [".tomi"],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
+  "icon": "icons/tomi.svg",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomi-lang/tomi"
+  },
+  "license": "MIT",
+  "activationEvents": []
+}

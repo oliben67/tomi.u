@@ -1,0 +1,42 @@
+{
+  "iconDefinitions": {
+    "tomi_file": {
+      "iconPath": "../icons/tomi.svg"
+    },
+    "tomi_file_dark": {
+      "iconPath": "../icons/tomi-dark.svg"
+    },
+    "tomi_folder": {
+      "iconPath": "../icons/tomi.svg"
+    }
+  },
+  "fileExtensions": {
+    "tomi": "tomi_file"
+  },
+  "fileNames": {
+    ".tomi": "tomi_file"
+  },
+  "folderNames": {
+    "tomi": "tomi_folder",
+    "stdlib": "tomi_folder"
+  },
+  "languageIds": {
+    "tomi": "tomi_file"
+  },
+  "light": {
+    "fileExtensions": {
+      "tomi": "tomi_file"
+    },
+    "fileNames": {
+      ".tomi": "tomi_file"
+    }
+  },
+  "highContrast": {
+    "fileExtensions": {
+      "tomi": "tomi_file_dark"
+    },
+    "fileNames": {
+      ".tomi": "tomi_file_dark"
+    }
+  }
+}
