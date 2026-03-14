@@ -63,3 +63,4 @@ yarn-error.log*
 coverage/
 lcov.info
 hello.rs
+hello
