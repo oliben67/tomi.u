@@ -95,7 +95,7 @@ impl TomiParser {
     // ═══════════════════════════════════════════════════════════════════════
 
     fn parse_module_declaration(&mut self) -> Result<Spanned<String>, CompileError> {
-        let start = self.current_span();
+        let _start = self.current_span();
         self.expect(TokenKind::Module)?;
         let name = self.parse_identifier()?;
         self.expect(TokenKind::Colon)?;
@@ -647,7 +647,7 @@ impl TomiParser {
     fn parse_type(&mut self) -> Result<Type, CompileError> {
         // Check for reference types
         if self.check(TokenKind::Ampersand) {
-            let start = self.current_span();
+            let _start = self.current_span();
             self.advance();
             let is_mut = self.check(TokenKind::Mut);
             if is_mut {

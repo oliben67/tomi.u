@@ -224,7 +224,7 @@ impl<'a> Lexer<'a> {
             if self.peek_char() == Some('#') {
                 self.advance();
                 // Multi-line comment
-                let content_start = self.current_pos;
+                let _content_start = self.current_pos;
                 loop {
                     match self.peek() {
                         None => {
