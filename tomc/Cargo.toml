@@ -46,3 +46,7 @@ panic = "abort"
 [[bin]]
 name = "tomc"
 path = "src/main.rs"
+
+[[test]]
+name = "end2end"
+path = "tests/end2end/mod.rs"
