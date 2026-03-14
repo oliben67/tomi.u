@@ -27,11 +27,15 @@ pub struct InferCtx {
     subst: HashMap<TypeVarId, Ty>,
 }
 
+impl Default for InferCtx {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InferCtx {
     pub fn new() -> Self {
-        Self {
-            subst: HashMap::new(),
-        }
+        Self { subst: HashMap::new() }
     }
 
     /// Unify two types, extending the substitution.
@@ -89,30 +93,15 @@ impl InferCtx {
             (Ty::Slice(a_elem), Ty::Slice(b_elem)) => self.unify(a_elem, b_elem),
             (Ty::Optional(a_inner), Ty::Optional(b_inner)) => self.unify(a_inner, b_inner),
             (
-                Ty::Reference {
-                    is_mut: a_mut,
-                    inner: a_inner,
-                },
-                Ty::Reference {
-                    is_mut: b_mut,
-                    inner: b_inner,
-                },
+                Ty::Reference { is_mut: a_mut, inner: a_inner },
+                Ty::Reference { is_mut: b_mut, inner: b_inner },
             ) => {
                 if a_mut != b_mut {
                     return Err(UnifyError::Mismatch(a, b));
                 }
                 self.unify(a_inner, b_inner)
             }
-            (
-                Ty::Function {
-                    params: ap,
-                    ret: ar,
-                },
-                Ty::Function {
-                    params: bp,
-                    ret: br,
-                },
-            ) => {
+            (Ty::Function { params: ap, ret: ar }, Ty::Function { params: bp, ret: br }) => {
                 if ap.len() != bp.len() {
                     return Err(UnifyError::Mismatch(a, b));
                 }
@@ -167,10 +156,9 @@ impl InferCtx {
             Ty::Array(elem, sz) => Ty::Array(Box::new(self.apply(elem)), *sz),
             Ty::Slice(elem) => Ty::Slice(Box::new(self.apply(elem))),
             Ty::Optional(inner) => Ty::Optional(Box::new(self.apply(inner))),
-            Ty::Reference { is_mut, inner } => Ty::Reference {
-                is_mut: *is_mut,
-                inner: Box::new(self.apply(inner)),
-            },
+            Ty::Reference { is_mut, inner } => {
+                Ty::Reference { is_mut: *is_mut, inner: Box::new(self.apply(inner)) }
+            }
             Ty::Function { params, ret } => Ty::Function {
                 params: params.iter().map(|t| self.apply(t)).collect(),
                 ret: Box::new(self.apply(ret)),
@@ -252,14 +240,8 @@ mod tests {
     fn unify_functions() {
         let mut ctx = InferCtx::new();
         let var = Ty::TypeVar(TypeVarId(0));
-        let a = Ty::Function {
-            params: vec![Ty::Int32],
-            ret: Box::new(Ty::String),
-        };
-        let b = Ty::Function {
-            params: vec![Ty::Int32],
-            ret: Box::new(var.clone()),
-        };
+        let a = Ty::Function { params: vec![Ty::Int32], ret: Box::new(Ty::String) };
+        let b = Ty::Function { params: vec![Ty::Int32], ret: Box::new(var.clone()) };
         assert!(ctx.unify(&a, &b).is_ok());
         assert_eq!(ctx.apply(&var), Ty::String);
     }

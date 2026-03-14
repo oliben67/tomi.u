@@ -14,13 +14,9 @@ use tomc::parser::TomiParser;
 /// Parse source and type-check it. Returns errors (empty on success).
 fn check(source: &str) -> Vec<tomc::CompileError> {
     let mut lexer = Lexer::new(source);
-    let tokens = lexer
-        .tokenize()
-        .unwrap_or_else(|e| panic!("Lexer error: {e:?}"));
+    let tokens = lexer.tokenize().unwrap_or_else(|e| panic!("Lexer error: {e:?}"));
     let mut parser = TomiParser::new(tokens).with_source(source.to_string());
-    let module = parser
-        .parse()
-        .unwrap_or_else(|e| panic!("Parser errors: {e:?}"));
+    let module = parser.parse().unwrap_or_else(|e| panic!("Parser errors: {e:?}"));
     let mut checker = TypeChecker::new();
     checker.check_module(&module)
 }
@@ -31,11 +27,7 @@ fn assert_ok(source: &str) {
     assert!(
         errors.is_empty(),
         "Expected no type errors, got:\n{}",
-        errors
-            .iter()
-            .map(|e| format!("  [{}] {:?}", e.code(), e))
-            .collect::<Vec<_>>()
-            .join("\n")
+        errors.iter().map(|e| format!("  [{}] {:?}", e.code(), e)).collect::<Vec<_>>().join("\n")
     );
 }
 
@@ -57,11 +49,7 @@ fn assert_error_count(source: &str, n: usize) {
         n,
         "Expected {n} errors, got {}:\n{}",
         errors.len(),
-        errors
-            .iter()
-            .map(|e| format!("  [{}] {:?}", e.code(), e))
-            .collect::<Vec<_>>()
-            .join("\n")
+        errors.iter().map(|e| format!("  [{}] {:?}", e.code(), e)).collect::<Vec<_>>().join("\n")
     );
 }
 
@@ -650,11 +638,7 @@ def f():
     let y = unknown2
 "#;
     let errors = check(source);
-    assert!(
-        errors.len() >= 2,
-        "Expected at least 2 errors, got {}",
-        errors.len()
-    );
+    assert!(errors.len() >= 2, "Expected at least 2 errors, got {}", errors.len());
 }
 
 #[test]

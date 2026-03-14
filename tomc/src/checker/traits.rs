@@ -35,11 +35,7 @@ impl<'a> TraitResolver<'a> {
             .map(|m| m.name.clone())
             .collect();
 
-        if missing.is_empty() {
-            None
-        } else {
-            Some(missing)
-        }
+        if missing.is_empty() { None } else { Some(missing) }
     }
 
     /// Check that a concrete type satisfies a trait bound.
@@ -196,9 +192,7 @@ mod tests {
         });
 
         let resolver = TraitResolver::new(&reg);
-        assert!(resolver
-            .check_impl_completeness(trait_id, &["greet"])
-            .is_none());
+        assert!(resolver.check_impl_completeness(trait_id, &["greet"]).is_none());
     }
 
     #[test]
@@ -260,9 +254,7 @@ mod tests {
 
         let resolver = TraitResolver::new(&reg);
         // Only "next" is required, "count" has a default
-        assert!(resolver
-            .check_impl_completeness(trait_id, &["next"])
-            .is_none());
+        assert!(resolver.check_impl_completeness(trait_id, &["next"]).is_none());
     }
 
     #[test]

@@ -150,10 +150,9 @@ impl Ty {
             Ty::Array(elem, sz) => Ty::Array(Box::new(elem.substitute(subst)), *sz),
             Ty::Slice(elem) => Ty::Slice(Box::new(elem.substitute(subst))),
             Ty::Optional(inner) => Ty::Optional(Box::new(inner.substitute(subst))),
-            Ty::Reference { is_mut, inner } => Ty::Reference {
-                is_mut: *is_mut,
-                inner: Box::new(inner.substitute(subst)),
-            },
+            Ty::Reference { is_mut, inner } => {
+                Ty::Reference { is_mut: *is_mut, inner: Box::new(inner.substitute(subst)) }
+            }
             Ty::Function { params, ret } => Ty::Function {
                 params: params.iter().map(|t| t.substitute(subst)).collect(),
                 ret: Box::new(ret.substitute(subst)),
@@ -196,14 +195,8 @@ impl fmt::Display for Ty {
             Ty::Array(elem, None) => write!(f, "[{elem}]"),
             Ty::Slice(elem) => write!(f, "[{elem}]"),
             Ty::Optional(inner) => write!(f, "?{inner}"),
-            Ty::Reference {
-                is_mut: true,
-                inner,
-            } => write!(f, "&mut {inner}"),
-            Ty::Reference {
-                is_mut: false,
-                inner,
-            } => write!(f, "&{inner}"),
+            Ty::Reference { is_mut: true, inner } => write!(f, "&mut {inner}"),
+            Ty::Reference { is_mut: false, inner } => write!(f, "&{inner}"),
             Ty::Function { params, ret } => {
                 write!(f, "def(")?;
                 for (i, p) in params.iter().enumerate() {
@@ -348,6 +341,12 @@ pub struct TypeRegistry {
     next_type_var: u32,
 }
 
+impl Default for TypeRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TypeRegistry {
     pub fn new() -> Self {
         Self {
@@ -440,10 +439,7 @@ impl TypeRegistry {
 
     /// Find all trait implementations for a given type.
     pub fn impls_for_type(&self, ty: &Ty) -> Vec<&TraitImpl> {
-        self.trait_impls
-            .iter()
-            .filter(|imp| &imp.target_ty == ty)
-            .collect()
+        self.trait_impls.iter().filter(|imp| &imp.target_ty == ty).collect()
     }
 
     /// Check if a trait is implemented for a type.
@@ -462,43 +458,26 @@ impl TypeRegistry {
     pub fn resolve_ast_type(&self, ast_type: &ast::Type) -> Option<Ty> {
         match ast_type {
             ast::Type::Named(path) => {
-                let name = path
-                    .segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name =
+                    path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 self.resolve_primitive_or_named(&name)
             }
             ast::Type::Generic(path, args) => {
-                let name = path
-                    .segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name =
+                    path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 let type_id = self.resolve_name(&name)?;
                 let resolved_args: Option<Vec<Ty>> =
                     args.iter().map(|a| self.resolve_ast_type(a)).collect();
                 Some(Ty::Adt(type_id, resolved_args?))
             }
-            ast::Type::Function {
-                params,
-                return_type,
-            } => {
+            ast::Type::Function { params, return_type } => {
                 let ps: Option<Vec<Ty>> = params.iter().map(|p| self.resolve_ast_type(p)).collect();
                 let ret = self.resolve_ast_type(return_type)?;
-                Some(Ty::Function {
-                    params: ps?,
-                    ret: Box::new(ret),
-                })
+                Some(Ty::Function { params: ps?, ret: Box::new(ret) })
             }
             ast::Type::Reference { is_mut, inner } => {
                 let inner = self.resolve_ast_type(inner)?;
-                Some(Ty::Reference {
-                    is_mut: *is_mut,
-                    inner: Box::new(inner),
-                })
+                Some(Ty::Reference { is_mut: *is_mut, inner: Box::new(inner) })
             }
             ast::Type::Optional(inner) => {
                 let inner = self.resolve_ast_type(inner)?;

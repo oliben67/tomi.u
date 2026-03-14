@@ -39,9 +39,7 @@ impl<'a> ErrorReporter<'a> {
 
         // Print the report
         let report = builder.finish();
-        report
-            .eprint((self.filename, Source::from(self.source)))
-            .unwrap();
+        report.eprint((self.filename, Source::from(self.source))).unwrap();
     }
 
     /// Get a concise label message for the error.
@@ -62,39 +60,29 @@ impl<'a> ErrorReporter<'a> {
             CompileError::InvalidDecorator { name, .. } => format!("unknown decorator @{}", name),
             CompileError::UnsupportedFeature { feature, .. } => feature.clone(),
             CompileError::Internal { message, .. } => message.clone(),
-            CompileError::TypeMismatch {
-                expected, found, ..
-            } => {
+            CompileError::TypeMismatch { expected, found, .. } => {
                 format!("expected `{expected}`, found `{found}`")
             }
             CompileError::UndefinedVariable { name, .. } => {
                 format!("not found in this scope: `{name}`")
             }
             CompileError::UndefinedType { name, .. } => format!("type `{name}` not found"),
-            CompileError::UndefinedField {
-                field, struct_name, ..
-            } => {
+            CompileError::UndefinedField { field, struct_name, .. } => {
                 format!("no field `{field}` on type `{struct_name}`")
             }
             CompileError::UndefinedTrait { name, .. } => format!("trait `{name}` not found"),
             CompileError::CannotInferType { .. } => "cannot determine type".into(),
-            CompileError::ArgCountMismatch {
-                expected, found, ..
-            } => {
+            CompileError::ArgCountMismatch { expected, found, .. } => {
                 format!("expected {expected} arguments, found {found}")
             }
             CompileError::NotCallable { ty, .. } => format!("type `{ty}` is not callable"),
             CompileError::InvalidCast { from, to, .. } => {
                 format!("cannot cast `{from}` to `{to}`")
             }
-            CompileError::MissingTraitMethod {
-                method, trait_name, ..
-            } => {
+            CompileError::MissingTraitMethod { method, trait_name, .. } => {
                 format!("missing `{method}` required by `{trait_name}`")
             }
-            CompileError::NonExhaustiveMatch {
-                missing_patterns, ..
-            } => {
+            CompileError::NonExhaustiveMatch { missing_patterns, .. } => {
                 format!("patterns not covered: {}", missing_patterns.join(", "))
             }
             CompileError::TraitBoundNotSatisfied { ty, trait_name, .. } => {

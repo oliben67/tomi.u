@@ -42,11 +42,7 @@ pub enum CompileError {
     // Parser Errors
     // ═══════════════════════════════════════════════════════════════════════
     #[error("expected {expected}, found {found}")]
-    ExpectedToken {
-        expected: String,
-        found: String,
-        span: Span,
-    },
+    ExpectedToken { expected: String, found: String, span: Span },
 
     #[error("expected expression")]
     ExpectedExpression { span: Span },
@@ -70,11 +66,7 @@ pub enum CompileError {
     // Type Checking Errors
     // ═══════════════════════════════════════════════════════════════════════
     #[error("type mismatch: expected {expected}, found {found}")]
-    TypeMismatch {
-        expected: String,
-        found: String,
-        span: Span,
-    },
+    TypeMismatch { expected: String, found: String, span: Span },
 
     #[error("undefined variable '{name}'")]
     UndefinedVariable { name: String, span: Span },
@@ -83,11 +75,7 @@ pub enum CompileError {
     UndefinedType { name: String, span: Span },
 
     #[error("undefined field '{field}' on struct '{struct_name}'")]
-    UndefinedField {
-        struct_name: String,
-        field: String,
-        span: Span,
-    },
+    UndefinedField { struct_name: String, field: String, span: Span },
 
     #[error("undefined trait '{name}'")]
     UndefinedTrait { name: String, span: Span },
@@ -96,41 +84,22 @@ pub enum CompileError {
     CannotInferType { span: Span },
 
     #[error("argument count mismatch: expected {expected}, found {found}")]
-    ArgCountMismatch {
-        expected: usize,
-        found: usize,
-        span: Span,
-    },
+    ArgCountMismatch { expected: usize, found: usize, span: Span },
 
     #[error("type '{ty}' is not callable")]
     NotCallable { ty: String, span: Span },
 
     #[error("invalid cast from '{from}' to '{to}'")]
-    InvalidCast {
-        from: String,
-        to: String,
-        span: Span,
-    },
+    InvalidCast { from: String, to: String, span: Span },
 
     #[error("missing required trait method '{method}' for trait '{trait_name}'")]
-    MissingTraitMethod {
-        trait_name: String,
-        method: String,
-        span: Span,
-    },
+    MissingTraitMethod { trait_name: String, method: String, span: Span },
 
     #[error("non-exhaustive match: missing patterns {missing_patterns:?}")]
-    NonExhaustiveMatch {
-        missing_patterns: Vec<String>,
-        span: Span,
-    },
+    NonExhaustiveMatch { missing_patterns: Vec<String>, span: Span },
 
     #[error("trait bound not satisfied: '{ty}' does not implement '{trait_name}'")]
-    TraitBoundNotSatisfied {
-        ty: String,
-        trait_name: String,
-        span: Span,
-    },
+    TraitBoundNotSatisfied { ty: String, trait_name: String, span: Span },
 
     // ═══════════════════════════════════════════════════════════════════════
     // Code Generation Errors
