@@ -59,6 +59,11 @@ impl RustBackend {
             self.writer.writeln("// Do not edit manually");
             self.writer.blank_line();
         }
+        // tomi.u built-in function shims
+        self.writer.writeln("#[allow(dead_code, unused_variables)]");
+        self.writer.writeln("#[inline(always)]");
+        self.writer.writeln("fn print(args: impl std::fmt::Display) { println!(\"{}\", args); }");
+        self.writer.blank_line();
     }
 
     /// Map tomi.u visibility to Rust.
@@ -694,7 +699,8 @@ impl BackendCodegen for RustBackend {
                 let args_str: Result<Vec<_>, _> = args.iter()
                     .map(|e| self.generate_expr(e))
                     .collect();
-                format!("{}({})", callee_str, args_str?.join(", "))
+                let args_joined = args_str?.join(", ");
+                format!("{}({})", callee_str, args_joined)
             }
             Expr::MethodCall { object, method, args, .. } => {
                 let obj_str = self.generate_expr(object)?;

@@ -6,7 +6,7 @@ use clap::{Parser, ValueEnum};
 use colored::Colorize;
 use std::fmt;
 use std::path::PathBuf;
-use std::process::ExitCode;
+use std::process::{Command, ExitCode};
 use std::time::Instant;
 
 use tomc::codegen::{Backend, CodeGenerator};
@@ -36,7 +36,7 @@ struct Cli {
     #[arg(short = 't', long, value_enum, default_value_t = Target::Rust)]
     target: Target,
 
-    /// Comma-separated list of output types to emit: tokens,ast,code,metadata
+    /// Comma-separated list of output types to emit: tokens,ast,code,bin,metadata
     #[arg(long, value_name = "KIND,...")]
     emit: Option<String>,
 
@@ -175,7 +175,8 @@ enum Color {
 struct EmitKinds {
     tokens: bool,
     ast: bool,
-    code: bool,
+    code: bool,     // write generated Rust source (.rs)
+    bin: bool,      // compile to native binary via rustc
     metadata: bool,
 }
 
@@ -184,11 +185,12 @@ impl EmitKinds {
         let mut kinds = EmitKinds::default();
         for part in s.split(',') {
             match part.trim() {
-                "tokens" => kinds.tokens = true,
-                "ast" => kinds.ast = true,
-                "code" => kinds.code = true,
+                "tokens"   => kinds.tokens   = true,
+                "ast"      => kinds.ast      = true,
+                "code"     => kinds.code     = true,
+                "bin"      => kinds.bin      = true,
                 "metadata" => kinds.metadata = true,
-                other => return Err(format!("unknown emit kind `{other}` (valid: tokens, ast, code, metadata)")),
+                other => return Err(format!("unknown emit kind `{other}` (valid: tokens, ast, code, bin, metadata)")),
             }
         }
         Ok(kinds)
@@ -416,7 +418,11 @@ fn main() -> ExitCode {
                 return ExitCode::FAILURE;
             }
         },
-        None => EmitKinds { code: true, ..Default::default() },
+        // Default: produce a native binary for bin albums, Rust source for lib
+        None => match cli.album_type {
+            AlbumType::Bin => EmitKinds { bin: true, ..Default::default() },
+            AlbumType::Lib => EmitKinds { code: true, ..Default::default() },
+        },
     };
     if cli.print_tokens { emit.tokens = true; }
     if cli.print_ast    { emit.ast    = true; }
@@ -506,7 +512,7 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    if !emit.code {
+    if !emit.code && !emit.bin {
         if cli.verbose { eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed()); }
         return ExitCode::SUCCESS;
     }
@@ -530,18 +536,91 @@ fn main() -> ExitCode {
     // -----------------------------------------------------------------
     // Write output
     // -----------------------------------------------------------------
-    let output_path = cli.output.clone().unwrap_or_else(|| {
-        let stem = input.file_stem().unwrap_or_default();
-        let ext = match cli.target { Target::Rust => "rs" };
-        PathBuf::from(format!("{}.{}", stem.to_string_lossy(), ext))
-    });
+    let stem = input.file_stem().unwrap_or_default().to_string_lossy().to_string();
 
-    if let Err(e) = std::fs::write(&output_path, &output_code) {
-        eprintln!("{}: cannot write `{}`: {}", "error".red().bold(), output_path.display(), e);
-        return ExitCode::FAILURE;
+    // ---- emit: code (Rust source) ----
+    if emit.code && !emit.bin {
+        let rs_path = cli.output.clone().unwrap_or_else(|| PathBuf::from(format!("{stem}.rs")));
+        if let Err(e) = std::fs::write(&rs_path, &output_code) {
+            eprintln!("{}: cannot write `{}`: {}", "error".red().bold(), rs_path.display(), e);
+            return ExitCode::FAILURE;
+        }
+        println!("{} {} → {}", "✓".green().bold(), input.display(), rs_path.display());
     }
 
-    println!("{} {} → {}", "✓".green().bold(), input.display(), output_path.display());
+    // ---- emit: bin (native binary via rustc) ----
+    if emit.bin {
+        // Intermediate .rs: temp file unless user also asked for --emit code
+        let rs_path = if emit.code {
+            PathBuf::from(format!("{stem}.rs"))
+        } else {
+            std::env::temp_dir().join(format!("tomc_{stem}.rs"))
+        };
+
+        if let Err(e) = std::fs::write(&rs_path, &output_code) {
+            eprintln!("{}: cannot write intermediate `{}`: {}", "error".red().bold(), rs_path.display(), e);
+            return ExitCode::FAILURE;
+        }
+
+        if emit.code {
+            if cli.verbose {
+                eprintln!("{} wrote Rust source → {}", "info:".cyan().bold(), rs_path.display());
+            }
+        }
+
+        // Binary output path
+        let bin_path = cli.output.clone().unwrap_or_else(|| {
+            if cfg!(windows) {
+                PathBuf::from(format!("{stem}.exe"))
+            } else {
+                PathBuf::from(&stem)
+            }
+        });
+
+        if cli.verbose {
+            eprintln!("{} invoking rustc → {}", "info:".cyan().bold(), bin_path.display());
+        }
+
+        let mut rustc_cmd = Command::new("rustc");
+        rustc_cmd
+            .arg(&rs_path)
+            .arg("-o").arg(&bin_path)
+            .arg(format!("-Copt-level={}", codegen_cfg.opt_level));
+
+        if codegen_cfg.lto           { rustc_cmd.arg("-Clto=yes"); }
+        if !codegen_cfg.overflow_checks { rustc_cmd.arg("-Coverflow-checks=no"); }
+        if codegen_cfg.debug_info    { rustc_cmd.arg("-Cdebuginfo=2"); }
+
+        match cli.album_type {
+            AlbumType::Lib => { rustc_cmd.arg("--crate-type").arg("rlib"); }
+            AlbumType::Bin => {}
+        }
+
+        let rustc_out = match rustc_cmd.output() {
+            Ok(o) => o,
+            Err(e) => {
+                eprintln!("{}: failed to invoke rustc: {e}", "error".red().bold());
+                eprintln!("  Make sure rustc is installed and on your PATH.");
+                if !emit.code { let _ = std::fs::remove_file(&rs_path); }
+                return ExitCode::FAILURE;
+            }
+        };
+
+        if !rustc_out.status.success() {
+            eprintln!("{}: rustc error while compiling generated code:", "error".red().bold());
+            eprintln!("{}", String::from_utf8_lossy(&rustc_out.stderr));
+            if !emit.code { let _ = std::fs::remove_file(&rs_path); }
+            return ExitCode::FAILURE;
+        }
+
+        // Clean up temp .rs unless user also wanted code
+        if !emit.code {
+            let _ = std::fs::remove_file(&rs_path);
+        }
+
+        println!("{} {} → {}", "✓".green().bold(), input.display(), bin_path.display());
+    }
+
     if cli.verbose { eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed()); }
 
     if emit.metadata {
