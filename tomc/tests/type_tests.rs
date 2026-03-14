@@ -42,16 +42,16 @@ fn assert_error(source: &str, expected_code: &str) {
 }
 
 /// Assert that source produces exactly `n` errors.
-fn assert_error_count(source: &str, n: usize) {
-    let errors = check(source);
-    assert_eq!(
-        errors.len(),
-        n,
-        "Expected {n} errors, got {}:\n{}",
-        errors.len(),
-        errors.iter().map(|e| format!("  [{}] {:?}", e.code(), e)).collect::<Vec<_>>().join("\n")
-    );
-}
+// fn assert_error_count(source: &str, n: usize) {
+//     let errors = check(source);
+//     assert_eq!(
+//         errors.len(),
+//         n,
+//         "Expected {n} errors, got {}:\n{}",
+//         errors.len(),
+//         errors.iter().map(|e| format!("  [{}] {:?}", e.code(), e)).collect::<Vec<_>>().join("\n")
+//     );
+//}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Basic: programs that should type-check successfully
