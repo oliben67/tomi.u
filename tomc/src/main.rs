@@ -2,13 +2,13 @@
 //!
 //! Usage: tomc [OPTIONS] [INPUT]
 
-use clap::{Parser, ValueEnum};
-use colored::Colorize;
 use std::fmt;
 use std::path::PathBuf;
 use std::process::{Command, ExitCode};
 use std::time::Instant;
 
+use clap::{Parser, ValueEnum};
+use colored::Colorize;
 use tomc::codegen::{Backend, CodeGenerator};
 use tomc::error::ErrorReporter;
 use tomc::lexer::Lexer;
@@ -22,7 +22,9 @@ use tomc::parser::TomiParser;
 #[derive(Parser, Debug)]
 #[command(name = "tomc")]
 #[command(version, about, long_about = None)]
-#[command(after_help = "Use `tomc --explain <ERROR_CODE>` (e.g. E0001) for a detailed error explanation.")]
+#[command(
+    after_help = "Use `tomc --explain <ERROR_CODE>` (e.g. E0001) for a detailed error explanation."
+)]
 struct Cli {
     /// Input tomi.u source file
     #[arg(value_name = "INPUT")]
@@ -175,8 +177,8 @@ enum Color {
 struct EmitKinds {
     tokens: bool,
     ast: bool,
-    code: bool,     // write generated Rust source (.rs)
-    bin: bool,      // compile to native binary via rustc
+    code: bool, // write generated Rust source (.rs)
+    bin: bool,  // compile to native binary via rustc
     metadata: bool,
 }
 
@@ -185,12 +187,16 @@ impl EmitKinds {
         let mut kinds = EmitKinds::default();
         for part in s.split(',') {
             match part.trim() {
-                "tokens"   => kinds.tokens   = true,
-                "ast"      => kinds.ast      = true,
-                "code"     => kinds.code     = true,
-                "bin"      => kinds.bin      = true,
+                "tokens" => kinds.tokens = true,
+                "ast" => kinds.ast = true,
+                "code" => kinds.code = true,
+                "bin" => kinds.bin = true,
                 "metadata" => kinds.metadata = true,
-                other => return Err(format!("unknown emit kind `{other}` (valid: tokens, ast, code, bin, metadata)")),
+                other => {
+                    return Err(format!(
+                        "unknown emit kind `{other}` (valid: tokens, ast, code, bin, metadata)"
+                    ));
+                }
             }
         }
         Ok(kinds)
@@ -225,15 +231,22 @@ fn parse_codegen_opts(opts: &[String]) -> Result<CodegenConfig, String> {
         };
         match key {
             "opt-level" => {
-                let n = val.unwrap_or("2").parse::<u8>()
-                    .map_err(|_| format!("-C opt-level: expected 0–3, got `{}`", val.unwrap_or("")))?;
-                if n > 3 { return Err(format!("-C opt-level: value must be 0–3, got {n}")); }
+                let n = val.unwrap_or("2").parse::<u8>().map_err(|_| {
+                    format!("-C opt-level: expected 0–3, got `{}`", val.unwrap_or(""))
+                })?;
+                if n > 3 {
+                    return Err(format!("-C opt-level: value must be 0–3, got {n}"));
+                }
                 cfg.opt_level = n;
             }
             "overflow-checks" => cfg.overflow_checks = parse_bool_opt(val, "overflow-checks")?,
             "debug-info" => cfg.debug_info = parse_bool_opt(val, "debug-info")?,
             "lto" => cfg.lto = parse_bool_opt(val, "lto")?,
-            other => return Err(format!("unknown codegen option: `{other}` (valid: opt-level, overflow-checks, debug-info, lto)")),
+            other => {
+                return Err(format!(
+                    "unknown codegen option: `{other}` (valid: opt-level, overflow-checks, debug-info, lto)"
+                ));
+            }
         }
     }
     Ok(cfg)
@@ -262,7 +275,9 @@ const KNOWN_LINTS: &[&str] = &[
 ];
 
 fn validate_lints(cli: &Cli) {
-    let all: Vec<&str> = cli.warn.iter()
+    let all: Vec<&str> = cli
+        .warn
+        .iter()
         .chain(cli.deny.iter())
         .chain(cli.allow.iter())
         .map(String::as_str)
@@ -282,7 +297,9 @@ fn validate_lints(cli: &Cli) {
 fn handle_explain(code: &str) -> ExitCode {
     let upper = code.to_uppercase();
     match upper.as_str() {
-        "E0001" => print_explanation("E0001", "Unexpected token",
+        "E0001" => print_explanation(
+            "E0001",
+            "Unexpected token",
             "The compiler encountered a token it did not expect at this position.\n\
              \n\
              Example:\n\
@@ -293,8 +310,11 @@ fn handle_explain(code: &str) -> ExitCode {
              ```\n\
              \n\
              Check that keywords and punctuation are correct for the construct you\n\
-             are writing."),
-        "E0002" => print_explanation("E0002", "Unterminated string literal",
+             are writing.",
+        ),
+        "E0002" => print_explanation(
+            "E0002",
+            "Unterminated string literal",
             "A string literal was opened with `\"` but never closed.\n\
              \n\
              Example:\n\
@@ -304,20 +324,29 @@ fn handle_explain(code: &str) -> ExitCode {
                       ^^^^^^ string literal not terminated\n\
              ```\n\
              \n\
-             Add the closing `\"` at the end of the string."),
-        "E0003" => print_explanation("E0003", "Unexpected end of file",
+             Add the closing `\"` at the end of the string.",
+        ),
+        "E0003" => print_explanation(
+            "E0003",
+            "Unexpected end of file",
             "The compiler reached the end of the source file while still inside\n\
              a construct (block, expression, parameter list, etc.).\n\
              \n\
              Check for unclosed parentheses, missing colons on `def`/`if`/`for`,\n\
-             or an incomplete last statement."),
-        "E0004" => print_explanation("E0004", "Expected identifier",
+             or an incomplete last statement.",
+        ),
+        "E0004" => print_explanation(
+            "E0004",
+            "Expected identifier",
             "An identifier (variable name, function name, type name) was required\n\
              here but a different token was found.\n\
              \n\
              Identifiers must start with a letter or `_` and may contain letters,\n\
-             digits, and `_`."),
-        "E0005" => print_explanation("E0005", "Invalid numeric literal",
+             digits, and `_`.",
+        ),
+        "E0005" => print_explanation(
+            "E0005",
+            "Invalid numeric literal",
             "A numeric literal contained characters or a format not recognised\n\
              by the compiler.\n\
              \n\
@@ -325,8 +354,11 @@ fn handle_explain(code: &str) -> ExitCode {
              - Integer:  `42`, `0`, `1_000_000`\n\
              - Float:    `3.14`, `1.0e10`\n\
              - Hex:      `0xFF`\n\
-             - Binary:   `0b1010`"),
-        "E0006" => print_explanation("E0006", "Expected indented block",
+             - Binary:   `0b1010`",
+        ),
+        "E0006" => print_explanation(
+            "E0006",
+            "Expected indented block",
             "A construct that requires a body (def, if, for, while, try, …) was\n\
              not followed by an indented block.\n\
              \n\
@@ -335,20 +367,29 @@ fn handle_explain(code: &str) -> ExitCode {
              ```tomi.u\n\
              def greet():  # <-- the next line must be indented\n\
                  print(\"hi\")\n\
-             ```"),
-        "E0007" => print_explanation("E0007", "Inconsistent indentation",
+             ```",
+        ),
+        "E0007" => print_explanation(
+            "E0007",
+            "Inconsistent indentation",
             "The indentation level inside a block was inconsistent — some lines\n\
              used a different number of spaces or mixed tabs and spaces.\n\
              \n\
              tomi.u enforces a single, consistent indentation unit per block.\n\
-             Prefer 4 spaces throughout."),
-        "E0008" => print_explanation("E0008", "Invalid escape sequence",
+             Prefer 4 spaces throughout.",
+        ),
+        "E0008" => print_explanation(
+            "E0008",
+            "Invalid escape sequence",
             "A string literal contained a backslash escape sequence that is not\n\
              recognised.\n\
              \n\
              Valid escapes: `\\n`, `\\t`, `\\r`, `\\\\`, `\\\"`, `\\'`, `\\0`,\n\
-             `\\xNN`, `\\u{NNNN}`."),
-        "E0009" => print_explanation("E0009", "Expected `:` after function signature",
+             `\\xNN`, `\\u{NNNN}`.",
+        ),
+        "E0009" => print_explanation(
+            "E0009",
+            "Expected `:` after function signature",
             "A `def` declaration was not followed by `:` before the function body.\n\
              \n\
              ```tomi.u\n\
@@ -357,13 +398,17 @@ fn handle_explain(code: &str) -> ExitCode {
              \n\
              def foo():  # correct\n\
                  ...\n\
-             ```"),
-        "E0010" => print_explanation("E0010", "Mismatched parentheses or brackets",
+             ```",
+        ),
+        "E0010" => print_explanation(
+            "E0010",
+            "Mismatched parentheses or brackets",
             "An opening delimiter (`(`, `[`, `{`) was not matched by the\n\
              corresponding closing delimiter.\n\
              \n\
              Check all enclosed expressions and make sure every opener has a\n\
-             matching closer."),
+             matching closer.",
+        ),
         _ => {
             eprintln!("{}: unknown error code: `{code}`", "error".red().bold());
             eprintln!("  example codes: E0001 … E0010");
@@ -424,10 +469,16 @@ fn main() -> ExitCode {
             AlbumType::Lib => EmitKinds { code: true, ..Default::default() },
         },
     };
-    if cli.print_tokens { emit.tokens = true; }
-    if cli.print_ast    { emit.ast    = true; }
+    if cli.print_tokens {
+        emit.tokens = true;
+    }
+    if cli.print_ast {
+        emit.ast = true;
+    }
     // --check disables code output
-    if cli.check        { emit.code   = false; }
+    if cli.check {
+        emit.code = false;
+    }
 
     // Parse -C options
     let codegen_cfg = match parse_codegen_opts(&cli.codegen_opts) {
@@ -442,10 +493,20 @@ fn main() -> ExitCode {
     validate_lints(&cli);
 
     if cli.verbose {
-        eprintln!("{} tomc {} (edition {})", "info:".cyan().bold(), env!("CARGO_PKG_VERSION"), cli.edition);
+        eprintln!(
+            "{} tomc {} (edition {})",
+            "info:".cyan().bold(),
+            env!("CARGO_PKG_VERSION"),
+            cli.edition
+        );
         eprintln!("{} compiling `{}`", "info:".cyan().bold(), input.display());
-        eprintln!("{} target={}, album-type={}, opt-level={}", "info:".cyan().bold(),
-            cli.target, cli.album_type, codegen_cfg.opt_level);
+        eprintln!(
+            "{} target={}, album-type={}, opt-level={}",
+            "info:".cyan().bold(),
+            cli.target,
+            cli.album_type,
+            codegen_cfg.opt_level
+        );
     }
 
     let start = Instant::now();
@@ -467,38 +528,52 @@ fn main() -> ExitCode {
     // -----------------------------------------------------------------
     // Lexing
     // -----------------------------------------------------------------
-    if cli.verbose { eprintln!("{} lexing…", "info:".cyan().bold()); }
+    if cli.verbose {
+        eprintln!("{} lexing…", "info:".cyan().bold());
+    }
     let t0 = Instant::now();
     let mut lexer = Lexer::new(&source);
     let tokens = match lexer.tokenize() {
         Ok(t) => t,
         Err(errors) => {
-            for e in errors { reporter.report(&e); }
+            for e in errors {
+                reporter.report(&e);
+            }
             return ExitCode::FAILURE;
         }
     };
-    if cli.verbose { eprintln!("{} lexed {} tokens ({:?})", "info:".cyan().bold(), tokens.len(), t0.elapsed()); }
+    if cli.verbose {
+        eprintln!("{} lexed {} tokens ({:?})", "info:".cyan().bold(), tokens.len(), t0.elapsed());
+    }
 
     if emit.tokens {
         println!("{}", "=== Tokens ===".cyan().bold());
-        for tok in &tokens { println!("  {tok:?}"); }
+        for tok in &tokens {
+            println!("  {tok:?}");
+        }
         println!();
     }
 
     // -----------------------------------------------------------------
     // Parsing
     // -----------------------------------------------------------------
-    if cli.verbose { eprintln!("{} parsing…", "info:".cyan().bold()); }
+    if cli.verbose {
+        eprintln!("{} parsing…", "info:".cyan().bold());
+    }
     let t1 = Instant::now();
     let mut parser = TomiParser::new(tokens).with_source(source.clone());
     let ast = match parser.parse() {
         Ok(a) => a,
         Err(errors) => {
-            for e in errors { reporter.report(&e); }
+            for e in errors {
+                reporter.report(&e);
+            }
             return ExitCode::FAILURE;
         }
     };
-    if cli.verbose { eprintln!("{} parsed AST ({:?})", "info:".cyan().bold(), t1.elapsed()); }
+    if cli.verbose {
+        eprintln!("{} parsed AST ({:?})", "info:".cyan().bold(), t1.elapsed());
+    }
 
     if emit.ast {
         println!("{}", "=== AST ===".cyan().bold());
@@ -508,19 +583,25 @@ fn main() -> ExitCode {
 
     if cli.check {
         println!("{}", "✓ syntax check passed".green().bold());
-        if cli.verbose { eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed()); }
+        if cli.verbose {
+            eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed());
+        }
         return ExitCode::SUCCESS;
     }
 
     if !emit.code && !emit.bin {
-        if cli.verbose { eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed()); }
+        if cli.verbose {
+            eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed());
+        }
         return ExitCode::SUCCESS;
     }
 
     // -----------------------------------------------------------------
     // Code generation
     // -----------------------------------------------------------------
-    if cli.verbose { eprintln!("{} generating {} code…", "info:".cyan().bold(), cli.target); }
+    if cli.verbose {
+        eprintln!("{} generating {} code…", "info:".cyan().bold(), cli.target);
+    }
     let t2 = Instant::now();
     let backend: Backend = cli.target.into();
     let generator = CodeGenerator::new(backend);
@@ -531,7 +612,9 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
-    if cli.verbose { eprintln!("{} codegen done ({:?})", "info:".cyan().bold(), t2.elapsed()); }
+    if cli.verbose {
+        eprintln!("{} codegen done ({:?})", "info:".cyan().bold(), t2.elapsed());
+    }
 
     // -----------------------------------------------------------------
     // Write output
@@ -558,7 +641,12 @@ fn main() -> ExitCode {
         };
 
         if let Err(e) = std::fs::write(&rs_path, &output_code) {
-            eprintln!("{}: cannot write intermediate `{}`: {}", "error".red().bold(), rs_path.display(), e);
+            eprintln!(
+                "{}: cannot write intermediate `{}`: {}",
+                "error".red().bold(),
+                rs_path.display(),
+                e
+            );
             return ExitCode::FAILURE;
         }
 
@@ -570,11 +658,7 @@ fn main() -> ExitCode {
 
         // Binary output path
         let bin_path = cli.output.clone().unwrap_or_else(|| {
-            if cfg!(windows) {
-                PathBuf::from(format!("{stem}.exe"))
-            } else {
-                PathBuf::from(&stem)
-            }
+            if cfg!(windows) { PathBuf::from(format!("{stem}.exe")) } else { PathBuf::from(&stem) }
         });
 
         if cli.verbose {
@@ -584,15 +668,24 @@ fn main() -> ExitCode {
         let mut rustc_cmd = Command::new("rustc");
         rustc_cmd
             .arg(&rs_path)
-            .arg("-o").arg(&bin_path)
+            .arg("-o")
+            .arg(&bin_path)
             .arg(format!("-Copt-level={}", codegen_cfg.opt_level));
 
-        if codegen_cfg.lto           { rustc_cmd.arg("-Clto=yes"); }
-        if !codegen_cfg.overflow_checks { rustc_cmd.arg("-Coverflow-checks=no"); }
-        if codegen_cfg.debug_info    { rustc_cmd.arg("-Cdebuginfo=2"); }
+        if codegen_cfg.lto {
+            rustc_cmd.arg("-Clto=yes");
+        }
+        if !codegen_cfg.overflow_checks {
+            rustc_cmd.arg("-Coverflow-checks=no");
+        }
+        if codegen_cfg.debug_info {
+            rustc_cmd.arg("-Cdebuginfo=2");
+        }
 
         match cli.album_type {
-            AlbumType::Lib => { rustc_cmd.arg("--crate-type").arg("rlib"); }
+            AlbumType::Lib => {
+                rustc_cmd.arg("--crate-type").arg("rlib");
+            }
             AlbumType::Bin => {}
         }
 
@@ -601,7 +694,9 @@ fn main() -> ExitCode {
             Err(e) => {
                 eprintln!("{}: failed to invoke rustc: {e}", "error".red().bold());
                 eprintln!("  Make sure rustc is installed and on your PATH.");
-                if !emit.code { let _ = std::fs::remove_file(&rs_path); }
+                if !emit.code {
+                    let _ = std::fs::remove_file(&rs_path);
+                }
                 return ExitCode::FAILURE;
             }
         };
@@ -609,7 +704,9 @@ fn main() -> ExitCode {
         if !rustc_out.status.success() {
             eprintln!("{}: rustc error while compiling generated code:", "error".red().bold());
             eprintln!("{}", String::from_utf8_lossy(&rustc_out.stderr));
-            if !emit.code { let _ = std::fs::remove_file(&rs_path); }
+            if !emit.code {
+                let _ = std::fs::remove_file(&rs_path);
+            }
             return ExitCode::FAILURE;
         }
 
@@ -621,7 +718,9 @@ fn main() -> ExitCode {
         println!("{} {} → {}", "✓".green().bold(), input.display(), bin_path.display());
     }
 
-    if cli.verbose { eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed()); }
+    if cli.verbose {
+        eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed());
+    }
 
     if emit.metadata {
         let name = input.file_stem().unwrap_or_default().to_string_lossy();

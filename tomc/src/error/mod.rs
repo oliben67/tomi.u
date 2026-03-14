@@ -7,9 +7,9 @@
 mod reporter;
 
 pub use reporter::ErrorReporter;
+use thiserror::Error;
 
 use crate::span::Span;
-use thiserror::Error;
 
 /// Result type for compiler operations.
 pub type CompileResult<T> = Result<T, CompileError>;
@@ -42,11 +42,7 @@ pub enum CompileError {
     // Parser Errors
     // ═══════════════════════════════════════════════════════════════════════
     #[error("expected {expected}, found {found}")]
-    ExpectedToken {
-        expected: String,
-        found: String,
-        span: Span,
-    },
+    ExpectedToken { expected: String, found: String, span: Span },
 
     #[error("expected expression")]
     ExpectedExpression { span: Span },

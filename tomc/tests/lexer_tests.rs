@@ -1,17 +1,11 @@
 //! Lexer tests for tomc
 
-use tomc::lexer::Lexer;
-use tomc::lexer::TokenKind;
+use tomc::lexer::{Lexer, TokenKind};
 
 /// Helper to tokenize and return token kinds only
 fn tokenize(source: &str) -> Vec<TokenKind> {
     let mut lexer = Lexer::new(source);
-    lexer
-        .tokenize()
-        .expect("Tokenization should succeed")
-        .into_iter()
-        .map(|t| t.kind)
-        .collect()
+    lexer.tokenize().expect("Tokenization should succeed").into_iter().map(|t| t.kind).collect()
 }
 
 /// Helper to get text of tokens
@@ -208,12 +202,7 @@ fn test_logical_operators() {
     let tokens = tokenize("&& || !");
     assert_eq!(
         tokens,
-        vec![
-            TokenKind::AmpAmp,
-            TokenKind::PipePipe,
-            TokenKind::Bang,
-            TokenKind::Eof
-        ]
+        vec![TokenKind::AmpAmp, TokenKind::PipePipe, TokenKind::Bang, TokenKind::Eof]
     );
 }
 
@@ -289,7 +278,7 @@ fn test_line_comment() {
 fn test_indent_dedent() {
     let source = "def main():\n    return 1\n";
     let tokens = tokenize(source);
-    
+
     assert!(tokens.contains(&TokenKind::Def));
     assert!(tokens.contains(&TokenKind::Indent));
     assert!(tokens.contains(&TokenKind::Return));
@@ -303,10 +292,7 @@ fn test_indent_dedent() {
 #[test]
 fn test_arrows() {
     let tokens = tokenize("-> =>");
-    assert_eq!(
-        tokens,
-        vec![TokenKind::Arrow, TokenKind::FatArrow, TokenKind::Eof]
-    );
+    assert_eq!(tokens, vec![TokenKind::Arrow, TokenKind::FatArrow, TokenKind::Eof]);
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -316,10 +302,7 @@ fn test_arrows() {
 #[test]
 fn test_decorator() {
     let tokens = tokenize("@entrypoint");
-    assert_eq!(
-        tokens,
-        vec![TokenKind::At, TokenKind::Identifier, TokenKind::Eof]
-    );
+    assert_eq!(tokens, vec![TokenKind::At, TokenKind::Identifier, TokenKind::Eof]);
 }
 
 // ═══════════════════════════════════════════════════════════════════════

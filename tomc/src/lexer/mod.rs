@@ -72,11 +72,7 @@ impl<'a> Lexer<'a> {
             );
         }
 
-        if errors.is_empty() {
-            Ok(tokens)
-        } else {
-            Err(errors)
-        }
+        if errors.is_empty() { Ok(tokens) } else { Err(errors) }
     }
 
     /// Get the next token.
@@ -194,18 +190,13 @@ impl<'a> Lexer<'a> {
         if spaces > current_indent {
             // Indent
             self.indent_stack.push(spaces);
-            Ok(Some(Token::new(
-                TokenKind::Indent,
-                Span::new(start, self.current_pos),
-            )))
+            Ok(Some(Token::new(TokenKind::Indent, Span::new(start, self.current_pos))))
         } else if spaces < current_indent {
             // Dedent (possibly multiple levels)
             while self.indent_stack.len() > 1 && *self.indent_stack.last().unwrap() > spaces {
                 self.indent_stack.pop();
-                self.pending_tokens.push(Token::new(
-                    TokenKind::Dedent,
-                    Span::new(start, self.current_pos),
-                ));
+                self.pending_tokens
+                    .push(Token::new(TokenKind::Dedent, Span::new(start, self.current_pos)));
             }
 
             // Check for misaligned dedent
@@ -256,10 +247,7 @@ impl<'a> Lexer<'a> {
                         }
                     }
                 }
-                return Ok(Token::new(
-                    TokenKind::Comment,
-                    Span::new(start, self.current_pos),
-                ));
+                return Ok(Token::new(TokenKind::Comment, Span::new(start, self.current_pos)));
             }
         }
 
@@ -271,10 +259,7 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
 
-        Ok(Token::new(
-            TokenKind::Comment,
-            Span::new(start, self.current_pos),
-        ))
+        Ok(Token::new(TokenKind::Comment, Span::new(start, self.current_pos)))
     }
 
     /// Lex a string literal (with interpolation support).
@@ -298,8 +283,10 @@ impl<'a> Lexer<'a> {
                 Some((_, '\\')) => {
                     self.advance();
                     if let Some((pos, ch)) = self.peek() {
-                        if !matches!(ch, 'n' | 't' | 'r' | '\\' | '"' | '\'' | '0' | '{' | 'x' | 'u')
-                        {
+                        if !matches!(
+                            ch,
+                            'n' | 't' | 'r' | '\\' | '"' | '\'' | '0' | '{' | 'x' | 'u'
+                        ) {
                             return Err(CompileError::InvalidEscape {
                                 ch,
                                 span: Span::new(pos, pos + ch.len_utf8()),
@@ -329,11 +316,8 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        let kind = if has_interpolation {
-            TokenKind::InterpolatedString
-        } else {
-            TokenKind::String
-        };
+        let kind =
+            if has_interpolation { TokenKind::InterpolatedString } else { TokenKind::String };
 
         Ok(Token::new(kind, Span::new(start, self.current_pos)))
     }
@@ -423,11 +407,7 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        let kind = if is_float {
-            TokenKind::FloatLiteral
-        } else {
-            TokenKind::IntLiteral
-        };
+        let kind = if is_float { TokenKind::FloatLiteral } else { TokenKind::IntLiteral };
 
         Ok(Token::new(kind, Span::new(start, self.current_pos)))
     }
@@ -659,12 +639,7 @@ mod tests {
 
     fn lex(source: &str) -> Vec<TokenKind> {
         let mut lexer = Lexer::new(source);
-        lexer
-            .tokenize()
-            .unwrap()
-            .into_iter()
-            .map(|t| t.kind)
-            .collect()
+        lexer.tokenize().unwrap().into_iter().map(|t| t.kind).collect()
     }
 
     #[test]
@@ -699,18 +674,12 @@ mod tests {
 
     #[test]
     fn test_string() {
-        assert_eq!(
-            lex(r#""hello""#),
-            vec![TokenKind::String, TokenKind::Eof]
-        );
+        assert_eq!(lex(r#""hello""#), vec![TokenKind::String, TokenKind::Eof]);
     }
 
     #[test]
     fn test_interpolated_string() {
-        assert_eq!(
-            lex(r#""hello {name}""#),
-            vec![TokenKind::InterpolatedString, TokenKind::Eof]
-        );
+        assert_eq!(lex(r#""hello {name}""#), vec![TokenKind::InterpolatedString, TokenKind::Eof]);
     }
 
     #[test]

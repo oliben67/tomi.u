@@ -18,7 +18,9 @@
 
 pub mod rust;
 
-use crate::ast::{Module, Item, Function, Struct, Enum, Type, TypePath, Expr, Stmt, Pattern, Block};
+use crate::ast::{
+    Block, Enum, Expr, Function, Item, Module, Pattern, Stmt, Struct, Type, TypePath,
+};
 use crate::error::CompileError;
 use crate::span::Span;
 
@@ -131,18 +133,12 @@ pub struct CodeGenerator {
 impl CodeGenerator {
     /// Create a new code generator for the specified backend.
     pub fn new(backend: Backend) -> Self {
-        Self { 
-            config: CodegenConfig::default(),
-            backend_type: backend,
-        }
+        Self { config: CodegenConfig::default(), backend_type: backend }
     }
 
     /// Create a new code generator with custom configuration.
     pub fn with_config(backend: Backend, config: CodegenConfig) -> Self {
-        Self { 
-            config,
-            backend_type: backend,
-        }
+        Self { config, backend_type: backend }
     }
 
     /// Generate code from an AST module.
@@ -294,10 +290,7 @@ impl CodegenExt for () {
     where
         F: FnOnce() -> Option<T>,
     {
-        f().ok_or(CompileError::Internal {
-            message: "code generation failed".into(),
-            span,
-        })
+        f().ok_or(CompileError::Internal { message: "code generation failed".into(), span })
     }
 }
 

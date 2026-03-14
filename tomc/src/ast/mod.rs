@@ -128,24 +128,15 @@ pub enum Type {
     /// Generic instantiation (e.g., List[Int32], Map[String, Value])
     Generic(TypePath, Vec<Type>),
     /// Function type (e.g., fn(Int32) -> String)
-    Function {
-        params: Vec<Type>,
-        return_type: Box<Type>,
-    },
+    Function { params: Vec<Type>, return_type: Box<Type> },
     /// Reference type (e.g., &String, &mut String)
-    Reference {
-        is_mut: bool,
-        inner: Box<Type>,
-    },
+    Reference { is_mut: bool, inner: Box<Type> },
     /// Optional type (e.g., ?String shorthand for Option[String])
     Optional(Box<Type>),
     /// Tuple type (e.g., (Int32, String))
     Tuple(Vec<Type>),
     /// Array type (e.g., [Int32; 10])
-    Array {
-        element: Box<Type>,
-        size: Option<Box<Expr>>,
-    },
+    Array { element: Box<Type>, size: Option<Box<Expr>> },
     /// Slice type (e.g., [Int32])
     Slice(Box<Type>),
     /// Unit type ()
@@ -264,11 +255,7 @@ pub enum TraitItem {
     /// A required or provided method
     Method(Function),
     /// An associated type
-    Type {
-        name: Spanned<String>,
-        bounds: Vec<TypePath>,
-        span: Span,
-    },
+    Type { name: Spanned<String>, bounds: Vec<TypePath>, span: Span },
 }
 
 /// A trait implementation.
@@ -322,57 +309,23 @@ pub struct Block {
 #[derive(Debug, Clone)]
 pub enum Stmt {
     /// Let binding (let x = expr)
-    Let {
-        is_mut: bool,
-        pattern: Pattern,
-        ty: Option<Type>,
-        value: Option<Expr>,
-        span: Span,
-    },
+    Let { is_mut: bool, pattern: Pattern, ty: Option<Type>, value: Option<Expr>, span: Span },
     /// Expression statement
     Expr(Expr),
     /// Return statement
-    Return {
-        value: Option<Expr>,
-        span: Span,
-    },
+    Return { value: Option<Expr>, span: Span },
     /// Break statement
-    Break {
-        label: Option<Spanned<String>>,
-        value: Option<Expr>,
-        span: Span,
-    },
+    Break { label: Option<Spanned<String>>, value: Option<Expr>, span: Span },
     /// Continue statement
-    Continue {
-        label: Option<Spanned<String>>,
-        span: Span,
-    },
+    Continue { label: Option<Spanned<String>>, span: Span },
     /// For loop
-    For {
-        pattern: Pattern,
-        iterable: Expr,
-        body: Block,
-        span: Span,
-    },
+    For { pattern: Pattern, iterable: Expr, body: Block, span: Span },
     /// While loop
-    While {
-        condition: Expr,
-        body: Block,
-        span: Span,
-    },
+    While { condition: Expr, body: Block, span: Span },
     /// Loop (infinite)
-    Loop {
-        label: Option<Spanned<String>>,
-        body: Block,
-        span: Span,
-    },
+    Loop { label: Option<Spanned<String>>, body: Block, span: Span },
     /// Assignment (x = expr, x += expr, etc.)
-    Assignment {
-        target: Expr,
-        op: AssignOp,
-        value: Expr,
-        span: Span,
-    },
+    Assignment { target: Expr, op: AssignOp, value: Expr, span: Span },
     /// Try-catch/except statement for exception handling
     /// Supports both `catch` (Java/JS style) and `except` (Python style)
     TryCatch {
@@ -383,10 +336,7 @@ pub enum Stmt {
         span: Span,
     },
     /// Raise/throw statement
-    Raise {
-        exception: Expr,
-        span: Span,
-    },
+    Raise { exception: Expr, span: Span },
 }
 
 /// An exception handler for try-catch/except blocks
@@ -722,11 +672,7 @@ pub enum Pattern {
     /// Wildcard (_)
     Wildcard { span: Span },
     /// Variable binding
-    Identifier {
-        is_mut: bool,
-        name: Spanned<String>,
-        span: Span,
-    },
+    Identifier { is_mut: bool, name: Spanned<String>, span: Span },
     /// Literal pattern
     Literal { value: Expr, span: Span },
     /// Tuple pattern
@@ -739,35 +685,15 @@ pub enum Pattern {
         span: Span,
     },
     /// Enum variant pattern
-    Variant {
-        path: TypePath,
-        data: Option<Box<Pattern>>,
-        span: Span,
-    },
+    Variant { path: TypePath, data: Option<Box<Pattern>>, span: Span },
     /// Slice pattern
-    Slice {
-        elements: Vec<Pattern>,
-        rest: Option<Box<Pattern>>,
-        span: Span,
-    },
+    Slice { elements: Vec<Pattern>, rest: Option<Box<Pattern>>, span: Span },
     /// Or pattern (a | b)
-    Or {
-        patterns: Vec<Pattern>,
-        span: Span,
-    },
+    Or { patterns: Vec<Pattern>, span: Span },
     /// Range pattern (1..10, 'a'..='z')
-    Range {
-        start: Option<Box<Expr>>,
-        end: Option<Box<Expr>>,
-        inclusive: bool,
-        span: Span,
-    },
+    Range { start: Option<Box<Expr>>, end: Option<Box<Expr>>, inclusive: bool, span: Span },
     /// Binding pattern (name @ pattern)
-    Binding {
-        name: Spanned<String>,
-        pattern: Box<Pattern>,
-        span: Span,
-    },
+    Binding { name: Spanned<String>, pattern: Box<Pattern>, span: Span },
 }
 
 impl Pattern {

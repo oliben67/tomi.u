@@ -28,19 +28,13 @@ impl Span {
     /// Create a span covering a single byte position.
     #[inline]
     pub const fn point(pos: usize) -> Self {
-        Self {
-            start: pos,
-            end: pos + 1,
-        }
+        Self { start: pos, end: pos + 1 }
     }
 
     /// Create a span that covers both self and other.
     #[inline]
     pub fn merge(self, other: Span) -> Self {
-        Self {
-            start: self.start.min(other.start),
-            end: self.end.max(other.end),
-        }
+        Self { start: self.start.min(other.start), end: self.end.max(other.end) }
     }
 
     /// Check if this span contains a byte offset.
@@ -85,10 +79,7 @@ impl fmt::Display for Span {
 
 impl From<Range<usize>> for Span {
     fn from(range: Range<usize>) -> Self {
-        Self {
-            start: range.start,
-            end: range.end,
-        }
+        Self { start: range.start, end: range.end }
     }
 }
 
@@ -137,19 +128,13 @@ impl<T> Spanned<T> {
     /// Map the inner value while preserving the span.
     #[inline]
     pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> Spanned<U> {
-        Spanned {
-            node: f(self.node),
-            span: self.span,
-        }
+        Spanned { node: f(self.node), span: self.span }
     }
 
     /// Get a reference to the inner value.
     #[inline]
     pub fn as_ref(&self) -> Spanned<&T> {
-        Spanned {
-            node: &self.node,
-            span: self.span,
-        }
+        Spanned { node: &self.node, span: self.span }
     }
 }
 

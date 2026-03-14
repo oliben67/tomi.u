@@ -19,7 +19,7 @@
 //! | `&mut T`        | `&mut T`            |
 
 use crate::ast::*;
-use crate::codegen::{BackendCodegen, CodegenConfig, CodeWriter};
+use crate::codegen::{BackendCodegen, CodeWriter, CodegenConfig};
 use crate::error::CompileError;
 
 /// Rust backend for code generation.
@@ -592,27 +592,21 @@ impl BackendCodegen for RustBackend {
             Type::Named(path) => self.generate_type_path(path)?,
             Type::Generic(path, args) => {
                 let path_str = self.generate_type_path(path)?;
-                let args_str: Result<Vec<_>, _> = args.iter()
-                    .map(|t| self.generate_type(t))
-                    .collect();
+                let args_str: Result<Vec<_>, _> =
+                    args.iter().map(|t| self.generate_type(t)).collect();
                 format!("{}<{}>", path_str, args_str?.join(", "))
             }
             Type::Reference { is_mut, inner } => {
                 let inner_str = self.generate_type(inner)?;
-                if *is_mut {
-                    format!("&mut {}", inner_str)
-                } else {
-                    format!("&{}", inner_str)
-                }
+                if *is_mut { format!("&mut {}", inner_str) } else { format!("&{}", inner_str) }
             }
             Type::Optional(inner) => {
                 let inner_str = self.generate_type(inner)?;
                 format!("Option<{}>", inner_str)
             }
             Type::Tuple(types) => {
-                let types_str: Result<Vec<_>, _> = types.iter()
-                    .map(|t| self.generate_type(t))
-                    .collect();
+                let types_str: Result<Vec<_>, _> =
+                    types.iter().map(|t| self.generate_type(t)).collect();
                 format!("({})", types_str?.join(", "))
             }
             Type::Array { element, size } => {
@@ -629,9 +623,8 @@ impl BackendCodegen for RustBackend {
                 format!("[{}]", inner_str)
             }
             Type::Function { params, return_type } => {
-                let params_str: Result<Vec<_>, _> = params.iter()
-                    .map(|t| self.generate_type(t))
-                    .collect();
+                let params_str: Result<Vec<_>, _> =
+                    params.iter().map(|t| self.generate_type(t)).collect();
                 let ret = self.generate_type(return_type)?;
                 format!("fn({}) -> {}", params_str?.join(", "), ret)
             }
@@ -643,9 +636,7 @@ impl BackendCodegen for RustBackend {
     }
 
     fn generate_type_path(&mut self, path: &TypePath) -> Result<String, CompileError> {
-        let segments: Vec<&str> = path.segments.iter()
-            .map(|s| s.node.as_str())
-            .collect();
+        let segments: Vec<&str> = path.segments.iter().map(|s| s.node.as_str()).collect();
         Ok(segments.join("::"))
     }
 
@@ -696,17 +687,15 @@ impl BackendCodegen for RustBackend {
             }
             Expr::Call { callee, args, .. } => {
                 let callee_str = self.generate_expr(callee)?;
-                let args_str: Result<Vec<_>, _> = args.iter()
-                    .map(|e| self.generate_expr(e))
-                    .collect();
+                let args_str: Result<Vec<_>, _> =
+                    args.iter().map(|e| self.generate_expr(e)).collect();
                 let args_joined = args_str?.join(", ");
                 format!("{}({})", callee_str, args_joined)
             }
             Expr::MethodCall { object, method, args, .. } => {
                 let obj_str = self.generate_expr(object)?;
-                let args_str: Result<Vec<_>, _> = args.iter()
-                    .map(|e| self.generate_expr(e))
-                    .collect();
+                let args_str: Result<Vec<_>, _> =
+                    args.iter().map(|e| self.generate_expr(e)).collect();
                 format!("{}.{}({})", obj_str, method.node, args_str?.join(", "))
             }
             Expr::FieldAccess { object, field, .. } => {
@@ -719,20 +708,19 @@ impl BackendCodegen for RustBackend {
                 format!("{}[{}]", obj_str, idx_str)
             }
             Expr::Array { elements, .. } => {
-                let elems_str: Result<Vec<_>, _> = elements.iter()
-                    .map(|e| self.generate_expr(e))
-                    .collect();
+                let elems_str: Result<Vec<_>, _> =
+                    elements.iter().map(|e| self.generate_expr(e)).collect();
                 format!("[{}]", elems_str?.join(", "))
             }
             Expr::Tuple { elements, .. } => {
-                let elems_str: Result<Vec<_>, _> = elements.iter()
-                    .map(|e| self.generate_expr(e))
-                    .collect();
+                let elems_str: Result<Vec<_>, _> =
+                    elements.iter().map(|e| self.generate_expr(e)).collect();
                 format!("({})", elems_str?.join(", "))
             }
             Expr::StructInit { path, fields, .. } => {
                 let path_str = self.generate_type_path(path)?;
-                let fields_str: Result<Vec<_>, _> = fields.iter()
+                let fields_str: Result<Vec<_>, _> = fields
+                    .iter()
                     .map(|f| {
                         if let Some(value) = &f.value {
                             let val_str = self.generate_expr(value)?;
@@ -747,67 +735,60 @@ impl BackendCodegen for RustBackend {
             Expr::If { condition, then_block, elif_clauses, else_block, .. } => {
                 let cond_str = self.generate_expr(condition)?;
                 let then_str = self.generate_block(then_block)?;
-                
+
                 let mut result = format!("if {} {{\n{}}}", cond_str, then_str);
-                
+
                 for (elif_cond, elif_block) in elif_clauses {
                     let elif_cond_str = self.generate_expr(elif_cond)?;
                     let elif_block_str = self.generate_block(elif_block)?;
-                    result.push_str(&format!(" else if {} {{\n{}}}", elif_cond_str, elif_block_str));
+                    result
+                        .push_str(&format!(" else if {} {{\n{}}}", elif_cond_str, elif_block_str));
                 }
-                
+
                 if let Some(else_block) = else_block {
                     let else_str = self.generate_block(else_block)?;
                     result.push_str(&format!(" else {{\n{}}}", else_str));
                 }
-                
+
                 result
             }
             Expr::Match { scrutinee, arms, .. } => {
                 let val_str = self.generate_expr(scrutinee)?;
                 let mut result = format!("match {} {{\n", val_str);
-                
+
                 for arm in arms {
                     let pat_str = self.generate_pattern(&arm.pattern)?;
                     result.push_str("    ");
                     result.push_str(&pat_str);
-                    
+
                     if let Some(guard) = &arm.guard {
                         let guard_str = self.generate_expr(guard)?;
                         result.push_str(&format!(" if {}", guard_str));
                     }
-                    
+
                     result.push_str(" => ");
                     let body_str = self.generate_expr(&arm.body)?;
                     result.push_str(&body_str);
                     result.push_str(",\n");
                 }
-                
+
                 result.push('}');
                 result
             }
             Expr::Reference { is_mut, inner, .. } => {
                 let inner_str = self.generate_expr(inner)?;
-                if *is_mut {
-                    format!("&mut {}", inner_str)
-                } else {
-                    format!("&{}", inner_str)
-                }
+                if *is_mut { format!("&mut {}", inner_str) } else { format!("&{}", inner_str) }
             }
             Expr::Deref { inner, .. } => {
                 let inner_str = self.generate_expr(inner)?;
                 format!("*{}", inner_str)
             }
             Expr::Range { start, end, inclusive, .. } => {
-                let start_str = start.as_ref()
-                    .map(|e| self.generate_expr(e))
-                    .transpose()?
-                    .unwrap_or_default();
-                let end_str = end.as_ref()
-                    .map(|e| self.generate_expr(e))
-                    .transpose()?
-                    .unwrap_or_default();
-                    
+                let start_str =
+                    start.as_ref().map(|e| self.generate_expr(e)).transpose()?.unwrap_or_default();
+                let end_str =
+                    end.as_ref().map(|e| self.generate_expr(e)).transpose()?.unwrap_or_default();
+
                 if *inclusive {
                     format!("{}..={}", start_str, end_str)
                 } else {
@@ -815,9 +796,7 @@ impl BackendCodegen for RustBackend {
                 }
             }
             Expr::Lambda { params, body, .. } => {
-                let params_str: Vec<String> = params.iter()
-                    .map(|p| p.name.node.clone())
-                    .collect();
+                let params_str: Vec<String> = params.iter().map(|p| p.name.node.clone()).collect();
                 let body_str = self.generate_expr(body)?;
                 format!("|{}| {}", params_str.join(", "), body_str)
             }
@@ -850,17 +829,17 @@ impl BackendCodegen for RustBackend {
                     s.push_str("mut ");
                 }
                 s.push_str(&self.generate_pattern(pattern)?);
-                
+
                 if let Some(ty) = ty {
                     s.push_str(": ");
                     s.push_str(&self.generate_type(ty)?);
                 }
-                
+
                 if let Some(val) = value {
                     s.push_str(" = ");
                     s.push_str(&self.generate_expr(val)?);
                 }
-                
+
                 s.push(';');
                 s
             }
@@ -914,7 +893,7 @@ impl BackendCodegen for RustBackend {
                 result.push_str("{\n");
                 result.push_str(&self.generate_block(try_block)?);
                 result.push_str("}\n");
-                
+
                 for handler in handlers {
                     if let Some(ty) = &handler.exception_type {
                         let type_str = self.generate_type(ty)?;
@@ -922,16 +901,16 @@ impl BackendCodegen for RustBackend {
                     } else {
                         result.push_str("// catch all\n");
                     }
-                    result.push_str("if false {\n");  // Placeholder - will be replaced with proper error handling
+                    result.push_str("if false {\n"); // Placeholder - will be replaced with proper error handling
                     result.push_str(&self.generate_block(&handler.body)?);
                     result.push_str("}\n");
                 }
-                
+
                 if let Some(finally) = finally_block {
                     result.push_str("// finally block\n");
                     result.push_str(&self.generate_block(finally)?);
                 }
-                
+
                 result
             }
             Stmt::Raise { exception, .. } => {
@@ -945,7 +924,7 @@ impl BackendCodegen for RustBackend {
 
     fn generate_block(&mut self, block: &Block) -> Result<String, CompileError> {
         let mut result = String::new();
-        
+
         for stmt in &block.stmts {
             let stmt_str = self.generate_stmt(stmt)?;
             for line in stmt_str.lines() {
@@ -954,7 +933,7 @@ impl BackendCodegen for RustBackend {
                 result.push('\n');
             }
         }
-        
+
         Ok(result)
     }
 
@@ -968,18 +947,16 @@ impl BackendCodegen for RustBackend {
                     name.node.clone()
                 }
             }
-            Pattern::Literal { value, .. } => {
-                self.generate_expr(value)?
-            }
+            Pattern::Literal { value, .. } => self.generate_expr(value)?,
             Pattern::Tuple { elements, .. } => {
-                let elems_str: Result<Vec<_>, _> = elements.iter()
-                    .map(|p| self.generate_pattern(p))
-                    .collect();
+                let elems_str: Result<Vec<_>, _> =
+                    elements.iter().map(|p| self.generate_pattern(p)).collect();
                 format!("({})", elems_str?.join(", "))
             }
             Pattern::Struct { path, fields, rest, .. } => {
                 let path_str = self.generate_type_path(path)?;
-                let mut fields_str: Vec<String> = fields.iter()
+                let mut fields_str: Vec<String> = fields
+                    .iter()
                     .map(|f| {
                         if let Some(pat) = &f.pattern {
                             let pat_str = self.generate_pattern(pat).unwrap_or_default();
@@ -1004,9 +981,8 @@ impl BackendCodegen for RustBackend {
                 }
             }
             Pattern::Slice { elements, rest, .. } => {
-                let mut elems_str: Vec<String> = elements.iter()
-                    .map(|p| self.generate_pattern(p).unwrap_or_default())
-                    .collect();
+                let mut elems_str: Vec<String> =
+                    elements.iter().map(|p| self.generate_pattern(p).unwrap_or_default()).collect();
                 if let Some(rest_pat) = rest {
                     let rest_str = self.generate_pattern(rest_pat)?;
                     elems_str.push(format!("{}..", rest_str));
@@ -1014,20 +990,15 @@ impl BackendCodegen for RustBackend {
                 format!("[{}]", elems_str.join(", "))
             }
             Pattern::Or { patterns, .. } => {
-                let pats_str: Result<Vec<_>, _> = patterns.iter()
-                    .map(|p| self.generate_pattern(p))
-                    .collect();
+                let pats_str: Result<Vec<_>, _> =
+                    patterns.iter().map(|p| self.generate_pattern(p)).collect();
                 pats_str?.join(" | ")
             }
             Pattern::Range { start, end, inclusive, .. } => {
-                let start_str = start.as_ref()
-                    .map(|e| self.generate_expr(e))
-                    .transpose()?
-                    .unwrap_or_default();
-                let end_str = end.as_ref()
-                    .map(|e| self.generate_expr(e))
-                    .transpose()?
-                    .unwrap_or_default();
+                let start_str =
+                    start.as_ref().map(|e| self.generate_expr(e)).transpose()?.unwrap_or_default();
+                let end_str =
+                    end.as_ref().map(|e| self.generate_expr(e)).transpose()?.unwrap_or_default();
                 if *inclusive {
                     format!("{}..={}", start_str, end_str)
                 } else {

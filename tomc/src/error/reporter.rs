@@ -39,9 +39,7 @@ impl<'a> ErrorReporter<'a> {
 
         // Print the report
         let report = builder.finish();
-        report
-            .eprint((self.filename, Source::from(self.source)))
-            .unwrap();
+        report.eprint((self.filename, Source::from(self.source))).unwrap();
     }
 
     /// Get a concise label message for the error.

@@ -17,8 +17,7 @@ const TOMC_BIN: &str = env!("CARGO_BIN_EXE_tomc");
 
 /// Canonical hello.tomi used across tests – relative to the workspace root.
 fn hello_tomi() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../examples/tomc/hello.tomi")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/tomc/hello.tomi")
 }
 
 /// Called at the start of every test.  Uses a `OnceLock` so the build check
@@ -237,10 +236,7 @@ fn test_check_does_not_produce_output_file() {
 
 #[test]
 fn test_emit_tokens() {
-    let out = tomc()
-        .args(["--emit", "tokens", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = tomc().args(["--emit", "tokens", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--emit tokens");
     let s = stdout(&out);
     assert!(
@@ -255,10 +251,7 @@ fn test_emit_tokens() {
 
 #[test]
 fn test_emit_ast() {
-    let out = tomc()
-        .args(["--emit", "ast", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = tomc().args(["--emit", "ast", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--emit ast");
     let s = stdout(&out);
     assert!(
@@ -291,10 +284,7 @@ fn test_emit_code_produces_rs_file() {
 
 #[test]
 fn test_emit_metadata() {
-    let out = tomc()
-        .args(["--emit", "metadata", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = tomc().args(["--emit", "metadata", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--emit metadata");
     // metadata emit should produce some output (no crash is the minimum guarantee)
 }
@@ -345,7 +335,13 @@ fn test_output_flag_long() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("long_output.rs");
     let out = tomc()
-        .args(["--output", out_path.to_str().unwrap(), "--emit", "code", hello_tomi().to_str().unwrap()])
+        .args([
+            "--output",
+            out_path.to_str().unwrap(),
+            "--emit",
+            "code",
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--output (long)");
@@ -361,7 +357,15 @@ fn test_edition_2024() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("edition.rs");
     let out = tomc()
-        .args(["--edition", "2024", "--emit", "code", "-o", out_path.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--edition",
+            "2024",
+            "--emit",
+            "code",
+            "-o",
+            out_path.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--edition 2024");
@@ -376,7 +380,15 @@ fn test_album_type_lib() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("lib.rs");
     let out = tomc()
-        .args(["--album-type", "lib", "--emit", "code", "-o", out_path.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--album-type",
+            "lib",
+            "--emit",
+            "code",
+            "-o",
+            out_path.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--album-type lib");
@@ -388,7 +400,15 @@ fn test_album_type_bin() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("bin_out.rs");
     let out = tomc()
-        .args(["--album-type", "bin", "--emit", "code", "-o", out_path.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--album-type",
+            "bin",
+            "--emit",
+            "code",
+            "-o",
+            out_path.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--album-type bin");
@@ -403,7 +423,18 @@ fn test_album_type_bin() {
 fn test_codegen_opt_level_0() {
     let tmp = tempfile::tempdir().unwrap();
     let bin = tmp.path().join("opt0");
-    let out = tomc().args(["-C", "opt-level=0", "--emit", "bin", "-o", bin.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "opt-level=0",
+            "--emit",
+            "bin",
+            "-o",
+            bin.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C opt-level=0");
 }
 
@@ -411,13 +442,27 @@ fn test_codegen_opt_level_0() {
 fn test_codegen_opt_level_3() {
     let tmp = tempfile::tempdir().unwrap();
     let bin = tmp.path().join("opt3");
-    let out = tomc().args(["-C", "opt-level=3", "--emit", "bin", "-o", bin.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "opt-level=3",
+            "--emit",
+            "bin",
+            "-o",
+            bin.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C opt-level=3");
 }
 
 #[test]
 fn test_codegen_opt_level_invalid_exits_nonzero() {
-    let out = tomc().args(["-C", "opt-level=5", "--emit", "code", hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args(["-C", "opt-level=5", "--emit", "code", hello_tomi().to_str().unwrap()])
+        .output()
+        .unwrap();
     assert_failure(&out, "-C opt-level=5 (invalid)");
 }
 
@@ -425,7 +470,18 @@ fn test_codegen_opt_level_invalid_exits_nonzero() {
 fn test_codegen_overflow_checks_no() {
     let tmp = tempfile::tempdir().unwrap();
     let bin = tmp.path().join("ovf");
-    let out = tomc().args(["-C", "overflow-checks=no", "--emit", "bin", "-o", bin.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "overflow-checks=no",
+            "--emit",
+            "bin",
+            "-o",
+            bin.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C overflow-checks=no");
 }
 
@@ -433,7 +489,18 @@ fn test_codegen_overflow_checks_no() {
 fn test_codegen_overflow_checks_yes() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("ovf.rs");
-    let out = tomc().args(["-C", "overflow-checks=yes", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "overflow-checks=yes",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C overflow-checks=yes");
 }
 
@@ -441,7 +508,18 @@ fn test_codegen_overflow_checks_yes() {
 fn test_codegen_debug_info_yes() {
     let tmp = tempfile::tempdir().unwrap();
     let bin = tmp.path().join("dbg");
-    let out = tomc().args(["-C", "debug-info=yes", "--emit", "bin", "-o", bin.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "debug-info=yes",
+            "--emit",
+            "bin",
+            "-o",
+            bin.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C debug-info=yes");
 }
 
@@ -449,7 +527,18 @@ fn test_codegen_debug_info_yes() {
 fn test_codegen_debug_info_no() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("nodbg.rs");
-    let out = tomc().args(["-C", "debug-info=no", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "debug-info=no",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C debug-info=no");
 }
 
@@ -457,7 +546,18 @@ fn test_codegen_debug_info_no() {
 fn test_codegen_lto_yes() {
     let tmp = tempfile::tempdir().unwrap();
     let bin = tmp.path().join("lto");
-    let out = tomc().args(["-C", "lto=yes", "--emit", "bin", "-o", bin.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "lto=yes",
+            "--emit",
+            "bin",
+            "-o",
+            bin.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C lto=yes");
 }
 
@@ -465,13 +565,27 @@ fn test_codegen_lto_yes() {
 fn test_codegen_lto_no() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("nolto.rs");
-    let out = tomc().args(["-C", "lto=no", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-C",
+            "lto=no",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-C lto=no");
 }
 
 #[test]
 fn test_codegen_unknown_opt_exits_nonzero() {
-    let out = tomc().args(["-C", "unknown-option=42", "--emit", "code", hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args(["-C", "unknown-option=42", "--emit", "code", hello_tomi().to_str().unwrap()])
+        .output()
+        .unwrap();
     assert_failure(&out, "-C unknown-option (invalid)");
     let combined = format!("{}{}", stdout(&out), stderr(&out));
     assert!(
@@ -485,7 +599,19 @@ fn test_codegen_multiple_opts_combined() {
     let tmp = tempfile::tempdir().unwrap();
     let bin = tmp.path().join("multi");
     let out = tomc()
-        .args(["-C", "opt-level=2", "-C", "overflow-checks=no", "-C", "debug-info=yes", "--emit", "bin", "-o", bin.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "-C",
+            "opt-level=2",
+            "-C",
+            "overflow-checks=no",
+            "-C",
+            "debug-info=yes",
+            "--emit",
+            "bin",
+            "-o",
+            bin.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "-C multiple options combined");
@@ -499,7 +625,18 @@ fn test_codegen_multiple_opts_combined() {
 fn test_warn_lint_accepted() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("warn.rs");
-    let out = tomc().args(["-W", "unused-variables", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-W",
+            "unused-variables",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-W unused-variables");
 }
 
@@ -507,7 +644,18 @@ fn test_warn_lint_accepted() {
 fn test_deny_lint_accepted() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("deny.rs");
-    let out = tomc().args(["-D", "dead-code", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-D",
+            "dead-code",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-D dead-code");
 }
 
@@ -515,7 +663,18 @@ fn test_deny_lint_accepted() {
 fn test_allow_lint_accepted() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("allow.rs");
-    let out = tomc().args(["-A", "warnings", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()]).output().unwrap();
+    let out = tomc()
+        .args([
+            "-A",
+            "warnings",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
     assert_success(&out, "-A warnings");
 }
 
@@ -547,7 +706,15 @@ fn test_unknown_lint_does_not_exit_nonzero() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("unknown_lint.rs");
     let out = tomc()
-        .args(["-W", "not-a-real-lint", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "-W",
+            "not-a-real-lint",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "-W unknown-lint (should warn, not error)");
@@ -584,7 +751,14 @@ fn test_verbose_long() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("verbose_long.rs");
     let out = tomc()
-        .args(["--verbose", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--verbose",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--verbose");
@@ -604,7 +778,15 @@ fn test_color_never() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("color_never.rs");
     let out = tomc()
-        .args(["--color", "never", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--color",
+            "never",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--color never");
@@ -615,7 +797,15 @@ fn test_color_always() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("color_always.rs");
     let out = tomc()
-        .args(["--color", "always", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--color",
+            "always",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--color always");
@@ -626,7 +816,15 @@ fn test_color_auto() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("color_auto.rs");
     let out = tomc()
-        .args(["--color", "auto", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--color",
+            "auto",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--color auto");
@@ -641,7 +839,15 @@ fn test_target_rust_short() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("target_rust.rs");
     let out = tomc()
-        .args(["-t", "rust", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "-t",
+            "rust",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "-t rust");
@@ -653,7 +859,15 @@ fn test_target_rust_long() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("target_rust_long.rs");
     let out = tomc()
-        .args(["--target", "rust", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--target",
+            "rust",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--target rust");
@@ -666,14 +880,14 @@ fn test_target_rust_long() {
 
 #[test]
 fn test_combined_verbose_check() {
-    let out = tomc()
-        .args(["--verbose", "--check", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out =
+        tomc().args(["--verbose", "--check", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--verbose --check");
     let combined = format!("{}{}", stdout(&out), stderr(&out));
     assert!(
-        combined.contains("syntax check passed") || combined.contains("✓") || combined.contains("info:"),
+        combined.contains("syntax check passed")
+            || combined.contains("✓")
+            || combined.contains("info:"),
         "verbose check output expected, got: {combined}"
     );
 }
@@ -683,7 +897,16 @@ fn test_combined_color_verbose_emit_code() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("combined.rs");
     let out = tomc()
-        .args(["--color", "never", "--verbose", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
+        .args([
+            "--color",
+            "never",
+            "--verbose",
+            "--emit",
+            "code",
+            "-o",
+            rs.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
         .output()
         .unwrap();
     assert_success(&out, "--color never --verbose --emit code");
@@ -696,13 +919,20 @@ fn test_combined_lint_codegen_emit_bin() {
     let bin = tmp.path().join("combined_bin");
     let out = tomc()
         .args([
-            "-W", "unused-variables",
-            "-D", "dead-code",
-            "-A", "warnings",
-            "-C", "opt-level=1",
-            "-C", "overflow-checks=yes",
-            "--emit", "bin",
-            "-o", bin.to_str().unwrap(),
+            "-W",
+            "unused-variables",
+            "-D",
+            "dead-code",
+            "-A",
+            "warnings",
+            "-C",
+            "opt-level=1",
+            "-C",
+            "overflow-checks=yes",
+            "--emit",
+            "bin",
+            "-o",
+            bin.to_str().unwrap(),
             hello_tomi().to_str().unwrap(),
         ])
         .output()

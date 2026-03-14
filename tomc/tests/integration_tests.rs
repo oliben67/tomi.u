@@ -1,24 +1,25 @@
 //! Integration tests for tomc - end-to-end compilation tests
 
+use std::fs;
+use std::process::Command;
+
 use tomc::codegen::{Backend, CodeGenerator, CodegenConfig};
 use tomc::lexer::Lexer;
 use tomc::parser::TomiParser;
-use std::process::Command;
-use std::fs;
 
 /// Full compilation pipeline
 fn compile(source: &str) -> Result<String, String> {
     // Lexer
     let mut lexer = Lexer::new(source);
     let tokens = lexer.tokenize().map_err(|e| format!("Lexer error: {:?}", e))?;
-    
+
     // Parser
     let mut parser = TomiParser::new(tokens).with_source(source.to_string());
     let module = parser.parse().map_err(|e| format!("Parser errors: {:?}", e))?;
-    
+
     // Codegen
     let config = CodegenConfig {
-        include_comments: false,  // Cleaner output for tests
+        include_comments: false, // Cleaner output for tests
         ..CodegenConfig::default()
     };
     let generator = CodeGenerator::with_config(Backend::Rust, config);
@@ -33,9 +34,9 @@ fn verify_compiles(rust_code: &str) -> bool {
         .suffix(".rs")
         .tempfile()
         .expect("Failed to create temp file");
-    
+
     fs::write(temp_file.path(), rust_code).expect("Failed to write to temp file");
-    
+
     // Try to compile with rustc (check only, no output)
     let output_rmeta = temp_file.path().with_extension("rmeta");
     let output = Command::new("rustc")
@@ -45,10 +46,10 @@ fn verify_compiles(rust_code: &str) -> bool {
         .arg(temp_file.path())
         .output()
         .expect("Failed to run rustc");
-    
+
     // Clean up metadata file
     let _ = fs::remove_file(&output_rmeta);
-    
+
     output.status.success()
 }
 
@@ -63,7 +64,7 @@ fn test_hello_world_compiles() {
 def main():
     let message = "Hello, World!"
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(rust.contains("fn main()"));
     assert!(verify_compiles(&rust), "Generated Rust should compile");
@@ -80,7 +81,7 @@ struct Point:
 def main():
     let p = Point { x: 10, y: 20 }
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -95,7 +96,7 @@ def add(a: i32, b: i32) -> i32:
 def main():
     let result = add(1, 2)
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -114,7 +115,7 @@ enum Color:
 def main():
     let x = 1
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(rust.contains("enum Color"));
     assert!(verify_compiles(&rust), "Generated Rust should compile");
@@ -131,7 +132,7 @@ def main():
     else:
         let y = 0
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -145,9 +146,9 @@ def main():
     while i < 10:
         i = i + 1
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
-    // While loops should compile  
+    // While loops should compile
     assert!(rust.contains("while"));
 }
 
@@ -162,7 +163,7 @@ def main():
     let d = 7 / 8
     let e = 9 % 10
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -176,7 +177,7 @@ def main():
     let b = true || false
     let c = !true
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -193,7 +194,7 @@ def main():
     let e = 9 == 10
     let f = 11 != 12
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -212,7 +213,7 @@ def main():
     let s = PublicStruct { value: 1 }
     let n = public_fn()
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(rust.contains("pub struct PublicStruct"));
     assert!(rust.contains("pub fn public_fn"));
@@ -232,7 +233,7 @@ def main():
     let x = p.x
     let y = p.y
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -245,7 +246,7 @@ def main():
     let a = (1 + 2) * (3 - 4)
     let b = 10 / (2 + 3)
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Generated Rust should compile");
 }
@@ -256,14 +257,14 @@ def main():
 
 #[test]
 fn test_syntax_error_detected() {
-    let source = "def test(";  // Missing closing paren
+    let source = "def test("; // Missing closing paren
     let result = compile(source);
     assert!(result.is_err());
 }
 
 #[test]
 fn test_missing_body_error() {
-    let source = "def test()";  // Missing body
+    let source = "def test()"; // Missing body
     let result = compile(source);
     assert!(result.is_err());
 }
@@ -280,7 +281,7 @@ fn test_full_example_hello() {
 def main():
     let message = "Hello, World!"
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Hello example should compile");
 }
@@ -301,13 +302,13 @@ def main():
     let p = Point { x: 10, y: 20 }
     let sum = add(p.x, p.y)
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(verify_compiles(&rust), "Structs example should compile");
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// Regression Tests  
+// Regression Tests
 // ═══════════════════════════════════════════════════════════════════════
 
 #[test]
@@ -321,7 +322,7 @@ def test():
     let c = Config { value: 42 }
     return c
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(rust.contains("Config { value: 42 }"));
 }
@@ -338,7 +339,7 @@ def b() -> i32:
 def c() -> i32:
     return a() + b()
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(rust.contains("fn a()"));
     assert!(rust.contains("fn b()"));
@@ -355,7 +356,7 @@ def 计算(数: i32) -> i32:
 def main():
     let 结果 = 计算(5)
 "#;
-    
+
     let rust = compile(source).expect("Compilation should succeed");
     assert!(rust.contains("fn 计算"));
     assert!(rust.contains("let 结果"));
@@ -368,15 +369,14 @@ def main():
 #[test]
 fn test_compile_hello_tomi() {
     // Read the canonical hello.tomi example from the repository
-    let hello_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../examples/tomc/hello.tomi");
+    let hello_path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/tomc/hello.tomi");
 
     let source = fs::read_to_string(&hello_path)
         .unwrap_or_else(|e| panic!("Could not read examples/tomc/hello.tomi: {e}"));
 
     // Compile through the full pipeline
-    let rust = compile(&source)
-        .unwrap_or_else(|e| panic!("hello.tomi compilation failed: {e}"));
+    let rust = compile(&source).unwrap_or_else(|e| panic!("hello.tomi compilation failed: {e}"));
 
     // --- structural checks ---
     // Must contain a main function
@@ -389,10 +389,7 @@ fn test_compile_hello_tomi() {
     );
 
     // Must include a call to print with 'message'
-    assert!(
-        rust.contains("print(message)"),
-        "output should call print(message), got:\n{rust}"
-    );
+    assert!(rust.contains("print(message)"), "output should call print(message), got:\n{rust}");
 
     // Must NOT be empty (sanity)
     assert!(!rust.trim().is_empty(), "generated output should not be empty");

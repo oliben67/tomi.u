@@ -10,7 +10,7 @@ fn compile_to_rust(source: &str) -> String {
     let tokens = lexer.tokenize().expect("Lexer should succeed");
     let mut parser = TomiParser::new(tokens).with_source(source.to_string());
     let module = parser.parse().expect("Parser should succeed");
-    
+
     let generator = CodeGenerator::new(Backend::Rust);
     generator.generate(&module).expect("Codegen should succeed")
 }
@@ -21,11 +21,8 @@ fn compile_to_rust_no_header(source: &str) -> String {
     let tokens = lexer.tokenize().expect("Lexer should succeed");
     let mut parser = TomiParser::new(tokens).with_source(source.to_string());
     let module = parser.parse().expect("Parser should succeed");
-    
-    let config = CodegenConfig {
-        include_comments: false,
-        ..CodegenConfig::default()
-    };
+
+    let config = CodegenConfig { include_comments: false, ..CodegenConfig::default() };
     let generator = CodeGenerator::with_config(Backend::Rust, config);
     generator.generate(&module).expect("Codegen should succeed")
 }
@@ -54,7 +51,7 @@ fn test_config_no_header() {
 fn test_simple_function() {
     let source = "def hello():\n    return 0\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("fn hello()"));
     assert!(rust.contains("return 0"));
 }
@@ -63,7 +60,7 @@ fn test_simple_function() {
 fn test_function_with_return_type() {
     let source = "def get_value() -> i32:\n    return 42\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("fn get_value() -> i32"));
     assert!(rust.contains("return 42"));
 }
@@ -72,7 +69,7 @@ fn test_function_with_return_type() {
 fn test_function_with_params() {
     let source = "def add(a: i32, b: i32) -> i32:\n    return a + b\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("fn add(a: i32, b: i32) -> i32"));
     assert!(rust.contains("return (a + b)"));
 }
@@ -81,7 +78,7 @@ fn test_function_with_params() {
 fn test_public_function() {
     let source = "pub def public_fn():\n    return 1\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("pub fn public_fn()"));
 }
 
@@ -89,7 +86,7 @@ fn test_public_function() {
 fn test_async_function() {
     let source = "async def fetch():\n    return 1\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("async fn fetch()"));
 }
 
@@ -97,7 +94,7 @@ fn test_async_function() {
 fn test_entrypoint_becomes_main() {
     let source = "@entrypoint\ndef start():\n    return 0\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     // @entrypoint should rename the function to main
     assert!(rust.contains("fn main()"));
 }
@@ -110,7 +107,7 @@ fn test_entrypoint_becomes_main() {
 fn test_simple_struct() {
     let source = "struct Point:\n    x: i32\n    y: i32\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     // Should have derive attributes
     assert!(rust.contains("#[derive(Debug, Clone)]"));
     assert!(rust.contains("struct Point"));
@@ -122,7 +119,7 @@ fn test_simple_struct() {
 fn test_public_struct() {
     let source = "pub struct Public:\n    value: i32\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("pub struct Public"));
 }
 
@@ -130,7 +127,7 @@ fn test_public_struct() {
 fn test_struct_init() {
     let source = "def test():\n    let p = Point { x: 10, y: 20 }\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("Point { x: 10, y: 20 }"));
 }
 
@@ -142,7 +139,7 @@ fn test_struct_init() {
 fn test_simple_enum() {
     let source = "enum Color:\n    Red\n    Green\n    Blue\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     // Current implementation derives Debug, Clone
     assert!(rust.contains("#[derive(Debug, Clone)]"));
     assert!(rust.contains("enum Color"));
@@ -159,7 +156,7 @@ fn test_simple_enum() {
 fn test_let_statement() {
     let source = "def test():\n    let x = 42\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("let x = 42"));
 }
 
@@ -167,7 +164,7 @@ fn test_let_statement() {
 fn test_let_mut_statement() {
     let source = "def test():\n    let mut x = 0\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("let mut x = 0"));
 }
 
@@ -175,7 +172,7 @@ fn test_let_mut_statement() {
 fn test_let_with_type() {
     let source = "def test():\n    let x: i32 = 42\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("let x: i32 = 42"));
 }
 
@@ -183,7 +180,7 @@ fn test_let_with_type() {
 fn test_return_statement() {
     let source = "def test():\n    return 42\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("return 42"));
 }
 
@@ -193,9 +190,10 @@ fn test_return_statement() {
 
 #[test]
 fn test_arithmetic_expressions() {
-    let source = "def test():\n    let a = 1 + 2\n    let b = 3 - 4\n    let c = 5 * 6\n    let d = 7 / 8\n";
+    let source =
+        "def test():\n    let a = 1 + 2\n    let b = 3 - 4\n    let c = 5 * 6\n    let d = 7 / 8\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("(1 + 2)") || rust.contains("1 + 2"));
     assert!(rust.contains("(3 - 4)") || rust.contains("3 - 4"));
     assert!(rust.contains("(5 * 6)") || rust.contains("5 * 6"));
@@ -206,7 +204,7 @@ fn test_arithmetic_expressions() {
 fn test_comparison_expressions() {
     let source = "def test():\n    let a = 1 < 2\n    let b = 3 > 4\n    let c = 5 == 6\n    let d = 7 != 8\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("1 < 2") || rust.contains("(1 < 2)"));
     assert!(rust.contains("3 > 4") || rust.contains("(3 > 4)"));
     assert!(rust.contains("5 == 6") || rust.contains("(5 == 6)"));
@@ -217,7 +215,7 @@ fn test_comparison_expressions() {
 fn test_logical_expressions() {
     let source = "def test():\n    let a = true && false\n    let b = true || false\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("&&"));
     assert!(rust.contains("||"));
 }
@@ -226,7 +224,7 @@ fn test_logical_expressions() {
 fn test_function_call() {
     let source = "def test():\n    print(x, y)\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("print(x, y)"));
 }
 
@@ -234,7 +232,7 @@ fn test_function_call() {
 fn test_method_call() {
     let source = "def test():\n    obj.method()\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("obj.method()"));
 }
 
@@ -242,7 +240,7 @@ fn test_method_call() {
 fn test_field_access() {
     let source = "def test():\n    let x = point.x\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("point.x"));
 }
 
@@ -250,7 +248,7 @@ fn test_field_access() {
 fn test_array_index() {
     let source = "def test():\n    let x = arr[0]\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("arr[0]"));
 }
 
@@ -262,7 +260,7 @@ fn test_array_index() {
 fn test_if_statement() {
     let source = "def test():\n    if x > 0:\n        return 1\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("if"));
     assert!(rust.contains("return 1"));
 }
@@ -271,7 +269,7 @@ fn test_if_statement() {
 fn test_if_else_statement() {
     let source = "def test():\n    if x > 0:\n        return 1\n    else:\n        return 0\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("if"));
     assert!(rust.contains("else"));
     assert!(rust.contains("return 1"));
@@ -282,7 +280,7 @@ fn test_if_else_statement() {
 fn test_while_loop() {
     let source = "def test():\n    while true:\n        break\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("while true"));
     assert!(rust.contains("break"));
 }
@@ -291,7 +289,7 @@ fn test_while_loop() {
 fn test_loop() {
     let source = "def test():\n    loop:\n        break\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("loop"));
     assert!(rust.contains("break"));
 }
@@ -305,7 +303,7 @@ fn test_loop() {
 fn test_optional_type() {
     let source = "def test(x: Optional<i32>):\n    return 0\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     // Optional<T> should become Option<T> in Rust
     assert!(rust.contains("Option<i32>"));
 }
@@ -315,7 +313,7 @@ fn test_optional_type() {
 fn test_array_type() {
     let source = "def test(arr: [i32]):\n    return 0\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     // [T] should become Vec<T> in Rust
     assert!(rust.contains("Vec<i32>"));
 }
@@ -324,7 +322,7 @@ fn test_array_type() {
 fn test_str_type() {
     let source = "def test(s: str):\n    return 0\n";
     let rust = compile_to_rust_no_header(source);
-    
+
     // Currently tomi.u str maps directly to Rust str (not String)
     // Note: This may need updating if we want str -> String conversion
     assert!(rust.contains("str"));
@@ -357,7 +355,7 @@ def main():
     print(message)
 "#;
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("fn main()"));
     assert!(rust.contains("let message = \"Hello, World!\""));
     assert!(rust.contains("print(message)"));
@@ -379,7 +377,7 @@ def main():
     let sum = add(p.x, p.y)
 "#;
     let rust = compile_to_rust_no_header(source);
-    
+
     assert!(rust.contains("struct Point"));
     assert!(rust.contains("fn add(a: i32, b: i32) -> i32"));
     assert!(rust.contains("fn main()"));

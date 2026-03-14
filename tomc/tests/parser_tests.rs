@@ -230,14 +230,12 @@ fn test_let_mut_statement() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Let { is_mut, .. } => {
-                    assert!(*is_mut);
-                }
-                _ => panic!("Expected let statement"),
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Let { is_mut, .. } => {
+                assert!(*is_mut);
             }
-        }
+            _ => panic!("Expected let statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -248,14 +246,12 @@ fn test_let_with_type() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Let { ty, .. } => {
-                    assert!(ty.is_some());
-                }
-                _ => panic!("Expected let statement"),
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Let { ty, .. } => {
+                assert!(ty.is_some());
             }
-        }
+            _ => panic!("Expected let statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -266,14 +262,12 @@ fn test_return_statement() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Return { value, .. } => {
-                    assert!(value.is_some());
-                }
-                _ => panic!("Expected return statement"),
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Return { value, .. } => {
+                assert!(value.is_some());
             }
-        }
+            _ => panic!("Expected return statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -288,14 +282,12 @@ fn test_integer_literal() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Expr(expr) => {
-                    assert!(matches!(expr, Expr::IntLiteral { value: 42, .. }));
-                }
-                _ => panic!("Expected expression statement"),
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Expr(expr) => {
+                assert!(matches!(expr, Expr::IntLiteral { value: 42, .. }));
             }
-        }
+            _ => panic!("Expected expression statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -306,19 +298,15 @@ fn test_binary_expression() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Expr(expr) => {
-                    match expr {
-                        Expr::Binary { op, .. } => {
-                            assert!(matches!(op, BinaryOp::Add));
-                        }
-                        _ => panic!("Expected binary expression"),
-                    }
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Expr(expr) => match expr {
+                Expr::Binary { op, .. } => {
+                    assert!(matches!(op, BinaryOp::Add));
                 }
-                _ => panic!("Expected expression statement"),
-            }
-        }
+                _ => panic!("Expected binary expression"),
+            },
+            _ => panic!("Expected expression statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -329,19 +317,15 @@ fn test_function_call() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Expr(expr) => {
-                    match expr {
-                        Expr::Call { args, .. } => {
-                            assert_eq!(args.len(), 2);
-                        }
-                        _ => panic!("Expected call expression"),
-                    }
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Expr(expr) => match expr {
+                Expr::Call { args, .. } => {
+                    assert_eq!(args.len(), 2);
                 }
-                _ => panic!("Expected expression statement"),
-            }
-        }
+                _ => panic!("Expected call expression"),
+            },
+            _ => panic!("Expected expression statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -352,20 +336,16 @@ fn test_struct_init() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Expr(expr) => {
-                    match expr {
-                        Expr::StructInit { path, fields, .. } => {
-                            assert_eq!(path.segments[0].node, "Point");
-                            assert_eq!(fields.len(), 2);
-                        }
-                        _ => panic!("Expected struct init expression"),
-                    }
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Expr(expr) => match expr {
+                Expr::StructInit { path, fields, .. } => {
+                    assert_eq!(path.segments[0].node, "Point");
+                    assert_eq!(fields.len(), 2);
                 }
-                _ => panic!("Expected expression statement"),
-            }
-        }
+                _ => panic!("Expected struct init expression"),
+            },
+            _ => panic!("Expected expression statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -376,19 +356,15 @@ fn test_field_access() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Expr(expr) => {
-                    match expr {
-                        Expr::FieldAccess { field, .. } => {
-                            assert_eq!(field.node, "x");
-                        }
-                        _ => panic!("Expected field access expression"),
-                    }
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Expr(expr) => match expr {
+                Expr::FieldAccess { field, .. } => {
+                    assert_eq!(field.node, "x");
                 }
-                _ => panic!("Expected expression statement"),
-            }
-        }
+                _ => panic!("Expected field access expression"),
+            },
+            _ => panic!("Expected expression statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -403,21 +379,17 @@ fn test_if_expression() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::Expr(expr) => {
-                    match expr {
-                        Expr::If { condition, then_block, else_block, .. } => {
-                            assert!(matches!(condition.as_ref(), Expr::Binary { .. }));
-                            assert!(!then_block.stmts.is_empty());
-                            assert!(else_block.is_none());
-                        }
-                        _ => panic!("Expected if expression"),
-                    }
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::Expr(expr) => match expr {
+                Expr::If { condition, then_block, else_block, .. } => {
+                    assert!(matches!(condition.as_ref(), Expr::Binary { .. }));
+                    assert!(!then_block.stmts.is_empty());
+                    assert!(else_block.is_none());
                 }
-                _ => panic!("Expected expression statement"),
-            }
-        }
+                _ => panic!("Expected if expression"),
+            },
+            _ => panic!("Expected expression statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -428,15 +400,13 @@ fn test_while_loop() {
     let module = parse(source);
 
     match &module.items[0] {
-        Item::Function(func) => {
-            match &func.body.stmts[0] {
-                Stmt::While { condition, body, .. } => {
-                    assert!(matches!(condition, Expr::BoolLiteral { value: true, .. }));
-                    assert!(!body.stmts.is_empty());
-                }
-                _ => panic!("Expected while statement"),
+        Item::Function(func) => match &func.body.stmts[0] {
+            Stmt::While { condition, body, .. } => {
+                assert!(matches!(condition, Expr::BoolLiteral { value: true, .. }));
+                assert!(!body.stmts.is_empty());
             }
-        }
+            _ => panic!("Expected while statement"),
+        },
         _ => panic!("Expected function"),
     }
 }
@@ -550,7 +520,7 @@ def test():
 "#;
     let module = parse(source);
     assert_eq!(module.items.len(), 1);
-    
+
     if let Item::Function(func) = &module.items[0] {
         assert_eq!(func.body.stmts.len(), 1);
         assert!(matches!(&func.body.stmts[0], Stmt::TryCatch { .. }));
@@ -569,7 +539,7 @@ def test():
         return 0
 "#;
     let module = parse(source);
-    
+
     if let Item::Function(func) = &module.items[0] {
         assert!(matches!(&func.body.stmts[0], Stmt::TryCatch { .. }));
     } else {
@@ -587,7 +557,7 @@ def test():
         return 1
 "#;
     let module = parse(source);
-    
+
     if let Item::Function(func) = &module.items[0] {
         if let Stmt::TryCatch { handlers, .. } = &func.body.stmts[0] {
             assert_eq!(handlers.len(), 1);
@@ -608,7 +578,7 @@ def test():
         print(e)
 "#;
     let module = parse(source);
-    
+
     if let Item::Function(func) = &module.items[0] {
         if let Stmt::TryCatch { handlers, .. } = &func.body.stmts[0] {
             assert_eq!(handlers.len(), 1);
@@ -631,7 +601,7 @@ def test():
         cleanup()
 "#;
     let module = parse(source);
-    
+
     if let Item::Function(func) = &module.items[0] {
         if let Stmt::TryCatch { finally_block, .. } = &func.body.stmts[0] {
             assert!(finally_block.is_some());
@@ -648,7 +618,7 @@ def test():
     raise "error message"
 "#;
     let module = parse(source);
-    
+
     if let Item::Function(func) = &module.items[0] {
         assert!(matches!(&func.body.stmts[0], Stmt::Raise { .. }));
     } else {

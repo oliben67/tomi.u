@@ -102,11 +102,11 @@ pub enum TokenKind {
     // Operators
     // ═══════════════════════════════════════════════════════════════════════
     // Arithmetic
-    Plus,     // +
-    Minus,    // -
-    Star,     // *
-    Slash,    // /
-    Percent,  // %
+    Plus,    // +
+    Minus,   // -
+    Star,    // *
+    Slash,   // /
+    Percent, // %
 
     // Assignment
     Eq,        // =
@@ -119,12 +119,12 @@ pub enum TokenKind {
     ShrEq,     // >>=
 
     // Comparison
-    EqEq,  // ==
+    EqEq,   // ==
     BangEq, // !=
-    Lt,    // <
-    LtEq,  // <=
-    Gt,    // >
-    GtEq,  // >=
+    Lt,     // <
+    LtEq,   // <=
+    Gt,     // >
+    GtEq,   // >=
 
     // Logical
     AmpAmp,   // &&
@@ -142,16 +142,16 @@ pub enum TokenKind {
     // ═══════════════════════════════════════════════════════════════════════
     // Punctuation
     // ═══════════════════════════════════════════════════════════════════════
-    Dot,      // .
-    DotDot,   // ..
-    DotDotEq, // ..=
-    Comma,    // ,
-    Colon,    // :
+    Dot,       // .
+    DotDot,    // ..
+    DotDotEq,  // ..=
+    Comma,     // ,
+    Colon,     // :
     Semicolon, // ;
-    Arrow,    // ->
-    FatArrow, // =>
-    At,       // @
-    Question, // ?
+    Arrow,     // ->
+    FatArrow,  // =>
+    At,        // @
+    Question,  // ?
 
     // Brackets
     LParen,   // (
