@@ -9,6 +9,7 @@ use std::time::Instant;
 
 use clap::{Parser, ValueEnum};
 use colored::Colorize;
+use tomc::checker::TypeChecker;
 use tomc::codegen::{Backend, CodeGenerator};
 use tomc::error::ErrorReporter;
 use tomc::lexer::Lexer;
@@ -587,6 +588,25 @@ fn main() -> ExitCode {
             eprintln!("{} total: {:?}", "info:".cyan().bold(), start.elapsed());
         }
         return ExitCode::SUCCESS;
+    }
+
+    // -----------------------------------------------------------------
+    // Type checking
+    // -----------------------------------------------------------------
+    if cli.verbose {
+        eprintln!("{} type checking…", "info:".cyan().bold());
+    }
+    let t_tc = Instant::now();
+    let mut checker = TypeChecker::new();
+    let type_errors = checker.check_module(&ast);
+    if !type_errors.is_empty() {
+        for e in &type_errors {
+            reporter.report(e);
+        }
+        return ExitCode::FAILURE;
+    }
+    if cli.verbose {
+        eprintln!("{} type check passed ({:?})", "info:".cyan().bold(), t_tc.elapsed());
     }
 
     if !emit.code && !emit.bin {

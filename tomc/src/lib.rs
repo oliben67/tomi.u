@@ -19,11 +19,13 @@
 //! - [`codegen`]: Modular code generation backends
 
 pub mod ast;
+pub mod checker;
 pub mod codegen;
 pub mod error;
 pub mod lexer;
 pub mod parser;
 pub mod span;
+pub mod types;
 
 pub use error::{CompileError, CompileResult};
 pub use span::Span;
