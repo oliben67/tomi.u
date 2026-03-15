@@ -42,8 +42,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./images/tomi-file-light.svg",
-          "dark": "./images/tomi-file-dark.svg"
+          "light": "./images/tomi-file-light.png",
+          "dark": "./images/tomi-file-dark.png"
         }
       }
     ],
