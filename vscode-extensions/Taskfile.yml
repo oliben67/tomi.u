@@ -1,0 +1,155 @@
+# https://taskfile.dev
+version: "3"
+
+vars:
+  LANG_SUPPORT_DIR: "tomi-language-support"
+  FILE_ICONS_DIR: "tomi-files-icons"
+
+tasks:
+  # ─────────────────────────────────────────────────────────────────
+  # Default
+  # ─────────────────────────────────────────────────────────────────
+
+  default:
+    desc: "Build all extensions"
+    cmds:
+      - task: build
+
+  # ─────────────────────────────────────────────────────────────────
+  # Build
+  # ─────────────────────────────────────────────────────────────────
+
+  build:
+    desc: "Build all VS Code extensions"
+    cmds:
+      - task: build:language-support
+      - task: build:file-icons
+
+  build:language-support:
+    desc: "Compile the tomi-language-support extension"
+    dir: "{{.LANG_SUPPORT_DIR}}"
+    sources:
+      - src/**/*.ts
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - syntaxes/**/*.json
+      - snippets/**/*.json
+      - language-configuration.json
+    generates:
+      - out/**/*.js
+    method: checksum
+    cmds:
+      - npm ci
+      - npm run compile
+
+  build:file-icons:
+    desc: "Prepare the tomi-files-icons extension"
+    dir: "{{.FILE_ICONS_DIR}}"
+    sources:
+      - package.json
+      - theme/**/*.json
+      - icons/**/*
+      - language-configuration.json
+    method: checksum
+    cmds:
+      - echo "tomi-files-icons is a static theme — no build step needed"
+
+  # ─────────────────────────────────────────────────────────────────
+  # Package (distributable .vsix)
+  # ─────────────────────────────────────────────────────────────────
+
+  package:
+    desc: "Package all extensions into distributable .vsix files"
+    cmds:
+      - task: package:language-support
+      - task: package:file-icons
+
+  package:language-support:
+    desc: "Package tomi-language-support as a .vsix"
+    dir: "{{.LANG_SUPPORT_DIR}}"
+    deps: [build:language-support]
+    sources:
+      - out/**/*.js
+      - package.json
+      - syntaxes/**/*.json
+      - snippets/**/*.json
+      - language-configuration.json
+      - README.md
+      - CHANGELOG.md
+      - images/**/*
+    generates:
+      - ../tomi-language-support.vsix
+    method: checksum
+    cmds:
+      - npx @vscode/vsce package --out ../tomi-language-support.vsix
+
+  package:file-icons:
+    desc: "Package tomi-files-icons as a .vsix"
+    dir: "{{.FILE_ICONS_DIR}}"
+    sources:
+      - package.json
+      - theme/**/*.json
+      - icons/**/*
+      - language-configuration.json
+      - README.md
+    generates:
+      - ../tomi-files-icons.vsix
+    method: checksum
+    cmds:
+      - npx @vscode/vsce package --out ../tomi-files-icons.vsix
+
+  # ─────────────────────────────────────────────────────────────────
+  # Install (local)
+  # ─────────────────────────────────────────────────────────────────
+
+  install:
+    desc: "Install all extensions locally into VS Code"
+    cmds:
+      - task: install:language-support
+      - task: install:file-icons
+
+  install:language-support:
+    desc: "Install tomi-language-support into VS Code"
+    deps: [package:language-support]
+    cmds:
+      - code --install-extension tomi-language-support.vsix --force
+
+  install:file-icons:
+    desc: "Install tomi-files-icons into VS Code"
+    deps: [package:file-icons]
+    cmds:
+      - code --install-extension tomi-files-icons.vsix --force
+
+  # ─────────────────────────────────────────────────────────────────
+  # Publish (marketplace)
+  # ─────────────────────────────────────────────────────────────────
+
+  publish:
+    desc: "Publish all extensions to the VS Code marketplace"
+    cmds:
+      - task: publish:language-support
+      - task: publish:file-icons
+
+  publish:language-support:
+    desc: "Publish tomi-language-support to the marketplace"
+    dir: "{{.LANG_SUPPORT_DIR}}"
+    deps: [build:language-support]
+    cmds:
+      - npx @vscode/vsce publish
+
+  publish:file-icons:
+    desc: "Publish tomi-files-icons to the marketplace"
+    dir: "{{.FILE_ICONS_DIR}}"
+    cmds:
+      - npx @vscode/vsce publish
+
+  # ─────────────────────────────────────────────────────────────────
+  # Clean
+  # ─────────────────────────────────────────────────────────────────
+
+  clean:
+    desc: "Remove build artifacts and packaged .vsix files"
+    cmds:
+      - rm -rf {{.LANG_SUPPORT_DIR}}/out {{.LANG_SUPPORT_DIR}}/node_modules
+      - rm -f tomi-language-support.vsix tomi-files-icons.vsix

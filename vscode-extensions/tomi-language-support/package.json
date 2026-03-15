@@ -4,7 +4,7 @@
   "description": "Intelligent Tomi language support with syntax highlighting, type checking, and IntelliSense",
   "version": "0.1.0",
   "publisher": "tomi-lang",
-  "icon": "images/tomi-icon.svg",
+  "icon": "images/tomi-icon.png",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -42,8 +42,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./images/tomi-file-light.svg",
-          "dark": "./images/tomi-file-dark.svg"
+          "light": "./images/tomi-file-light.png",
+          "dark": "./images/tomi-file-dark.png"
         }
       }
     ],
@@ -137,14 +137,14 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package",
-    "publish": "vsce publish"
+    "package": "npx @vscode/vsce package",
+    "publish": "npx @vscode/vsce publish"
   },
   "devDependencies": {
     "@types/node": "16.x",
     "@types/vscode": "^1.74.0",
     "typescript": "^4.9.4",
-    "vsce": "^2.15.0"
+    "@vscode/vsce": "^3.7.1"
   },
   "dependencies": {
     "vscode-languageclient": "^8.0.2"

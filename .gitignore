@@ -1,6 +1,7 @@
 # Project-specific
 .copilot
 .copilot/
+.task/
 
 # Rust
 target/

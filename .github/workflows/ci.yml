@@ -1,5 +1,5 @@
 # This workflow runs on every push and pull request, using Taskfile targets
-# to lint, compile, and test both the tomc compiler and the VS Code extension.
+# to lint, compile, and test both the tomc compiler and the VS Code extensions.
 
 name: CI
 
@@ -8,9 +8,6 @@ on:
     branches: ["**"]
   pull_request:
     branches: ["**"]
-
-permissions:
-  contents: read
 
 jobs:
   tomc:
@@ -41,16 +38,16 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Lint
-        run: task lint
+        run: task tomc:lint
 
       - name: Compile
-        run: task build:debug
+        run: task tomc:build:debug
 
       - name: Test
-        run: task test
+        run: task tomc:test
 
-  vscode-extension:
-    name: Compile TypeScript VSCode extension
+  vscode-extensions:
+    name: Build and package VS Code extensions
     runs-on: ubuntu-latest
 
     steps:
@@ -73,6 +70,16 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('vscode-extensions/tomi-language-support/package-lock.json') }}
           restore-keys: ${{ runner.os }}-npm-
 
-      - name: Compile
-        run: task build:vscode
+      - name: Build
+        run: task vscode:build
+
+      - name: Package (.vsix)
+        run: task vscode:package
+
+      - name: Upload extension artifacts
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extensions
+          path: vscode-extensions/*.vsix
 
