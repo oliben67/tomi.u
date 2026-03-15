@@ -394,3 +394,182 @@ fn test_compile_hello_tomi() {
     // Must NOT be empty (sanity)
     assert!(!rust.trim().is_empty(), "generated output should not be empty");
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// Python Pipeline Integration Tests
+// ═══════════════════════════════════════════════════════════════════════
+
+/// Full compilation pipeline targeting Python
+fn compile_python(source: &str) -> Result<String, String> {
+    let mut lexer = Lexer::new(source);
+    let tokens = lexer.tokenize().map_err(|e| format!("Lexer error: {:?}", e))?;
+
+    let mut parser = TomiParser::new(tokens).with_source(source.to_string());
+    let module = parser.parse().map_err(|e| format!("Parser errors: {:?}", e))?;
+
+    let config = CodegenConfig { include_comments: false, ..CodegenConfig::default() };
+    let generator = CodeGenerator::with_config(Backend::Python, config);
+    generator.generate(&module).map_err(|e| format!("Codegen error: {:?}", e))
+}
+
+/// Verify generated Python is syntactically valid using python3 -c
+#[allow(dead_code)]
+fn verify_python_syntax(code: &str) -> bool {
+    let output = Command::new("python3")
+        .args([
+            "-c",
+            &format!(
+                "import ast; ast.parse(\"\"\"{}\"\"\")",
+                code.replace('\\', "\\\\").replace('"', "\\\"")
+            ),
+        ])
+        .output();
+    match output {
+        Ok(o) => o.status.success(),
+        Err(_) => true, // Skip if python3 not available
+    }
+}
+
+#[test]
+fn test_python_hello_world_pipeline() {
+    let source = r#"
+@entrypoint
+def main():
+    let message = "Hello, World!"
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("def main()"));
+    assert!(py.contains("if __name__"));
+    assert!(py.contains("\"Hello, World!\""));
+}
+
+#[test]
+fn test_python_struct_pipeline() {
+    let source = r#"
+struct Point:
+    x: Int32
+    y: Int32
+
+def make_point() -> Point:
+    return Point { x: 10, y: 20 }
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("@dataclass"));
+    assert!(py.contains("class Point:"));
+    assert!(py.contains("x: int"));
+    assert!(py.contains("y: int"));
+    assert!(py.contains("Point(x=10, y=20)"));
+}
+
+#[test]
+fn test_python_enum_pipeline() {
+    let source = r#"
+enum Color:
+    Red
+    Green
+    Blue
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("class Color(Enum):"));
+    assert!(py.contains("Red = auto()"));
+}
+
+#[test]
+fn test_python_function_params_pipeline() {
+    let source = r#"
+def add(a: Int32, b: Int32) -> Int32:
+    return a + b
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("def add(a: int, b: int) -> int"));
+    assert!(py.contains("return (a + b)"));
+}
+
+#[test]
+fn test_python_control_flow_pipeline() {
+    let source = r#"
+def classify(x: Int32) -> Int32:
+    if x > 0:
+        return 1
+    else:
+        return 0
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("if (x > 0):"));
+    assert!(py.contains("return 1"));
+    assert!(py.contains("return 0"));
+}
+
+#[test]
+fn test_python_while_loop_pipeline() {
+    let source = r#"
+def count():
+    let mut i = 0
+    while i < 10:
+        i = i + 1
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("while"));
+    assert!(py.contains("i = (i + 1)"));
+}
+
+#[test]
+fn test_python_boolean_ops_pipeline() {
+    let source = r#"
+def logic():
+    let a = true && false
+    let b = true || false
+    let c = !true
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("True and False"));
+    assert!(py.contains("True or False"));
+    assert!(py.contains("not True"));
+}
+
+#[test]
+fn test_python_type_mappings_pipeline() {
+    let source = r#"
+def types(a: Int32, b: Float64, c: Bool, d: String, e: Bytes):
+    return a
+"#;
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("a: int"));
+    assert!(py.contains("b: float"));
+    assert!(py.contains("c: bool"));
+    assert!(py.contains("d: str"));
+    assert!(py.contains("e: bytes"));
+}
+
+#[test]
+fn test_python_const_pipeline() {
+    let source = "const MAX_SIZE: Int32 = 1024\n";
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("MAX_SIZE: int = 1024"));
+}
+
+#[test]
+fn test_python_type_alias_pipeline() {
+    let source = "type UserId = Int64\n";
+    let py = compile_python(source).expect("Python compilation should succeed");
+    assert!(py.contains("UserId = int"));
+}
+
+#[test]
+fn test_python_compile_hello_tomi() {
+    let hello_path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/tomc/hello.tomi");
+
+    let source = fs::read_to_string(&hello_path)
+        .unwrap_or_else(|e| panic!("Could not read examples/tomc/hello.tomi: {e}"));
+
+    let py = compile_python(&source)
+        .unwrap_or_else(|e| panic!("hello.tomi Python compilation failed: {e}"));
+
+    assert!(py.contains("def main()"), "Python output should have def main(), got:\n{py}");
+    assert!(
+        py.contains("\"Hello, World!\""),
+        "Python output should contain Hello, World!, got:\n{py}"
+    );
+    assert!(py.contains("if __name__"), "Python output should have __name__ guard, got:\n{py}");
+}

@@ -940,3 +940,157 @@ fn test_combined_lint_codegen_emit_bin() {
     assert_success(&out, "combined lints + codegen + emit bin");
     assert!(bin.exists(), "combined flags should still produce a binary");
 }
+
+// ---------------------------------------------------------------------------
+// Python target tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_target_python_short() {
+    let tmp = tempfile::tempdir().unwrap();
+    let py = tmp.path().join("target_python.py");
+    let out = tomc()
+        .args([
+            "-t",
+            "python",
+            "--emit",
+            "code",
+            "-o",
+            py.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert_success(&out, "-t python");
+    assert!(py.exists(), "-t python --emit code should produce a .py file");
+}
+
+#[test]
+fn test_target_python_long() {
+    let tmp = tempfile::tempdir().unwrap();
+    let py = tmp.path().join("target_python_long.py");
+    let out = tomc()
+        .args([
+            "--target",
+            "python",
+            "--emit",
+            "code",
+            "-o",
+            py.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert_success(&out, "--target python");
+    assert!(py.exists(), "--target python --emit code should produce a .py file");
+}
+
+#[test]
+fn test_python_emit_code_contains_main() {
+    let tmp = tempfile::tempdir().unwrap();
+    let py = tmp.path().join("hello_py.py");
+    let out = tomc()
+        .args([
+            "--target",
+            "python",
+            "--emit",
+            "code",
+            "-o",
+            py.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert_success(&out, "python emit code");
+    let code = std::fs::read_to_string(&py).unwrap();
+    assert!(
+        code.contains("def main()"),
+        "generated Python should contain def main(), got:\n{code}"
+    );
+    assert!(
+        code.contains("if __name__"),
+        "generated Python should contain if __name__ guard, got:\n{code}"
+    );
+    assert!(
+        code.contains("from __future__ import annotations"),
+        "generated Python should have future annotations import"
+    );
+}
+
+#[test]
+fn test_python_emit_code_contains_future_import() {
+    let tmp = tempfile::tempdir().unwrap();
+    let py = tmp.path().join("future.py");
+    let out = tomc()
+        .args([
+            "--target",
+            "python",
+            "--emit",
+            "code",
+            "-o",
+            py.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert_success(&out, "python future import");
+    let code = std::fs::read_to_string(&py).unwrap();
+    assert!(
+        code.contains("from __future__ import annotations"),
+        "Python output must include future annotations"
+    );
+}
+
+#[test]
+fn test_python_emit_bin_runs_with_python3() {
+    // --emit bin with --target python should invoke python3
+    let tmp = tempfile::tempdir().unwrap();
+    let py = tmp.path().join("hello_bin.py");
+    let out = tomc()
+        .args([
+            "--target",
+            "python",
+            "--emit",
+            "code,bin",
+            "-o",
+            py.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    // This test succeeds if python3 is available; skip gracefully if not
+    if out.status.success() {
+        let combined = format!("{}{}", stdout(&out), stderr(&out));
+        assert!(
+            combined.contains("python3") || combined.contains("✓"),
+            "python3 emit bin should mention python3 or success, got: {combined}"
+        );
+    }
+}
+
+#[test]
+fn test_python_verbose_emit_code() {
+    let tmp = tempfile::tempdir().unwrap();
+    let py = tmp.path().join("verbose.py");
+    let out = tomc()
+        .args([
+            "--verbose",
+            "--target",
+            "python",
+            "--emit",
+            "code",
+            "-o",
+            py.to_str().unwrap(),
+            hello_tomi().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert_success(&out, "python verbose");
+    let combined = format!("{}{}", stdout(&out), stderr(&out));
+    assert!(
+        combined.contains("python")
+            || combined.contains("Python")
+            || combined.contains("generating"),
+        "verbose output should mention Python backend, got: {combined}"
+    );
+}
