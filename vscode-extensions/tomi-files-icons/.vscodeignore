@@ -1,0 +1,9 @@
+# Build/install scripts
+install.sh
+package.sh
+INSTALLATION.md
+
+# Development files
+.vscode/**
+.gitignore
+.npmrc
