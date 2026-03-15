@@ -78,19 +78,10 @@ jobs:
 
       - name: Debug – list artifacts
         run: |
-          {
-            echo "## Artifact Debug Output"
-            echo '```'
-            echo "=== vscode-extensions/.artifacts/ ==="
-            ls -laR vscode-extensions/.artifacts/ 2>&1 || echo "(directory not found)"
-            echo ""
-            echo "=== .vsix files anywhere under vscode-extensions/ ==="
-            find vscode-extensions/ -name '*.vsix' -ls 2>/dev/null || echo "(none found)"
-            echo ""
-            echo "=== .task/ checksum directory ==="
-            find .task/ -type f -ls 2>/dev/null || echo "(no .task dir)"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          ARTIFACTS=$(ls -la vscode-extensions/.artifacts/ 2>&1) || ARTIFACTS="dir-not-found"
+          VSIX=$(find vscode-extensions/ -name '*.vsix' 2>/dev/null) || VSIX="none"
+          TASK_DIR=$(find . -path './.task/*' -type f 2>/dev/null | head -20) || TASK_DIR="none"
+          echo "::notice::ARTIFACTS_DIR=[${ARTIFACTS}] VSIX_FILES=[${VSIX}] TASK_CHECKSUMS=[${TASK_DIR}]"
 
       - name: Upload extension artifacts
         if: github.event_name == 'push'
