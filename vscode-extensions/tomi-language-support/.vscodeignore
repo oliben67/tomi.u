@@ -1,0 +1,21 @@
+# Source files (bundled by esbuild)
+src/**
+node_modules/**
+out/**
+
+# Build config
+tsconfig.json
+esbuild.js
+
+# Development files
+.vscode/**
+test-example.tomi
+demo.sh
+INSTALLATION.md
+
+# Package metadata
+.gitignore
+.npmrc
+
+# Source maps (dev only)
+**/*.map

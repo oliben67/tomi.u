@@ -33,11 +33,12 @@ tasks:
       - package.json
       - package-lock.json
       - tsconfig.json
+      - esbuild.js
       - syntaxes/**/*.json
       - snippets/**/*.json
       - language-configuration.json
     generates:
-      - out/**/*.js
+      - dist/extension.js
     method: checksum
     cmds:
       - npm ci
@@ -70,13 +71,14 @@ tasks:
     dir: "{{.LANG_SUPPORT_DIR}}"
     deps: [build:language-support]
     sources:
-      - out/**/*.js
+      - dist/extension.js
       - package.json
       - syntaxes/**/*.json
       - snippets/**/*.json
       - language-configuration.json
       - README.md
       - CHANGELOG.md
+      - LICENSE
       - images/**/*
     generates:
       - ../tomi-language-support.vsix
@@ -93,6 +95,7 @@ tasks:
       - icons/**/*
       - language-configuration.json
       - README.md
+      - LICENSE
     generates:
       - ../tomi-files-icons.vsix
     method: checksum
