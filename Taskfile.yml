@@ -1,0 +1,183 @@
+# https://taskfile.dev
+version: "3"
+
+vars:
+  TOOLCHAIN: "+nightly"
+  IMAGE_NAME: "tomi-u/tomc"
+  IMAGE_TAG: "latest"
+
+tasks:
+  # ─────────────────────────────────────────────────────────────────
+  # Default
+  # ─────────────────────────────────────────────────────────────────
+
+  default:
+    desc: "Run lint, build, and test"
+    cmds:
+      - task: lint
+      - task: build
+      - task: test
+
+  # ─────────────────────────────────────────────────────────────────
+  # Build targets
+  # ─────────────────────────────────────────────────────────────────
+
+  build:
+    desc: "Compile tomc (release)"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} build --all-targets --release
+
+  build:debug:
+    desc: "Compile tomc (debug)"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} build --all-targets
+
+  build:vscode:
+    desc: "Compile the tomi-language-support VS Code extension"
+    dir: vscode-extensions/tomi-language-support
+    cmds:
+      - npm ci
+      - npm run compile
+
+  build:all:
+    desc: "Build tomc and the VS Code extension"
+    cmds:
+      - task: build
+      - task: build:vscode
+
+  # ─────────────────────────────────────────────────────────────────
+  # Linting targets
+  # ─────────────────────────────────────────────────────────────────
+
+  lint:
+    desc: "Run all linters (fmt check + clippy)"
+    cmds:
+      - task: lint:fmt
+      - task: lint:clippy
+
+  lint:fmt:
+    desc: "Check code formatting with rustfmt"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} fmt --check
+
+  lint:clippy:
+    desc: "Run Clippy with warnings as errors"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} clippy --all-targets --all-features -- -D warnings
+
+  lint:fix:
+    desc: "Auto-fix formatting and clippy warnings"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} fmt
+      - cargo {{.TOOLCHAIN}} clippy --fix --allow-dirty --allow-staged -- -D warnings
+
+  # ─────────────────────────────────────────────────────────────────
+  # Testing targets
+  # ─────────────────────────────────────────────────────────────────
+
+  test:
+    desc: "Run all tests"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --all-targets
+
+  test:lib:
+    desc: "Run library unit tests only"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --lib
+
+  test:integration:
+    desc: "Run integration tests only"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --test integration_tests
+
+  test:e2e:
+    desc: "Run end-to-end tests only"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --test end2end
+
+  test:codegen:
+    desc: "Run codegen tests (Rust + Python)"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --test codegen_tests
+      - cargo {{.TOOLCHAIN}} test --test python_codegen_tests
+
+  test:lexer:
+    desc: "Run lexer tests only"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --test lexer_tests
+
+  test:parser:
+    desc: "Run parser tests only"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --test parser_tests
+
+  test:types:
+    desc: "Run type system tests only"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} test --test type_tests
+
+  # ─────────────────────────────────────────────────────────────────
+  # Debug targets
+  # ─────────────────────────────────────────────────────────────────
+
+  debug:run:
+    desc: "Build debug and run tomc with the given CLI_ARGS"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} run -- {{.CLI_ARGS | default ""}}
+
+  debug:hello:
+    desc: "Compile examples/tomc/hello.tomi to Rust and run it"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} run -- ../examples/tomc/hello.tomi --emit bin --verbose
+
+  debug:hello:python:
+    desc: "Compile examples/tomc/hello.tomi to Python and run it"
+    dir: tomc
+    cmds:
+      - cargo {{.TOOLCHAIN}} run -- ../examples/tomc/hello.tomi --target python --emit bin --verbose
+
+  # ─────────────────────────────────────────────────────────────────
+  # Containerization targets
+  # ─────────────────────────────────────────────────────────────────
+
+  container:build:
+    desc: "Build the tomc Docker image"
+    cmds:
+      - docker build -t {{.IMAGE_NAME}}:{{.IMAGE_TAG}} -f Dockerfile .
+
+  container:run:
+    desc: "Run tomc inside a container with the given CLI_ARGS"
+    cmds:
+      - docker run --rm -v "$PWD":/work -w /work {{.IMAGE_NAME}}:{{.IMAGE_TAG}} {{.CLI_ARGS | default ""}}
+
+  container:push:
+    desc: "Push the tomc image to the registry"
+    cmds:
+      - docker push {{.IMAGE_NAME}}:{{.IMAGE_TAG}}
+
+  # ─────────────────────────────────────────────────────────────────
+  # CI (mirrors the GitHub Actions workflow)
+  # ─────────────────────────────────────────────────────────────────
+
+  ci:
+    desc: "Run the full CI pipeline locally (lint → build → test → vscode)"
+    cmds:
+      - task: lint
+      - task: build:debug
+      - task: test
+      - task: build:vscode
