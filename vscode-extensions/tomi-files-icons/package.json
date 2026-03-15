@@ -33,7 +33,7 @@
       }
     ]
   },
-  "icon": "icons/tomi.svg",
+  "icon": "icons/tomi.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/tomi-lang/tomi"
