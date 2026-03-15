@@ -50,9 +50,7 @@ struct Scope {
 
 impl Scope {
     fn new() -> Self {
-        Self {
-            bindings: HashMap::new(),
-        }
+        Self { bindings: HashMap::new() }
     }
 }
 
@@ -160,21 +158,14 @@ impl TypeChecker {
     }
 
     fn collect_struct(&mut self, s: &ast::Struct) {
-        let type_params: Vec<String> = s
-            .type_params
-            .iter()
-            .map(|tp| tp.name.node.clone())
-            .collect();
+        let type_params: Vec<String> =
+            s.type_params.iter().map(|tp| tp.name.node.clone()).collect();
         let fields: Vec<FieldDef> = s
             .fields
             .iter()
             .map(|f| {
                 let ty = self.resolve_type(&f.ty);
-                FieldDef {
-                    name: f.name.node.clone(),
-                    ty,
-                    span: f.span,
-                }
+                FieldDef { name: f.name.node.clone(), ty, span: f.span }
             })
             .collect();
 
@@ -197,11 +188,8 @@ impl TypeChecker {
     }
 
     fn collect_enum(&mut self, e: &ast::Enum) {
-        let type_params: Vec<String> = e
-            .type_params
-            .iter()
-            .map(|tp| tp.name.node.clone())
-            .collect();
+        let type_params: Vec<String> =
+            e.type_params.iter().map(|tp| tp.name.node.clone()).collect();
         let variants: Vec<VariantDef> = e
             .variants
             .iter()
@@ -222,11 +210,7 @@ impl TypeChecker {
                             .collect(),
                     ),
                 };
-                VariantDef {
-                    name: v.name.node.clone(),
-                    data,
-                    span: v.span,
-                }
+                VariantDef { name: v.name.node.clone(), data, span: v.span }
             })
             .collect();
 
@@ -246,11 +230,8 @@ impl TypeChecker {
     }
 
     fn collect_trait(&mut self, t: &ast::Trait) {
-        let type_params: Vec<String> = t
-            .type_params
-            .iter()
-            .map(|tp| tp.name.node.clone())
-            .collect();
+        let type_params: Vec<String> =
+            t.type_params.iter().map(|tp| tp.name.node.clone()).collect();
 
         let methods: Vec<TraitMethodDef> = t
             .items
@@ -263,11 +244,8 @@ impl TypeChecker {
                         .filter(|p| p.name.node != "self")
                         .map(|p| self.resolve_type(&p.ty))
                         .collect();
-                    let ret = f
-                        .return_type
-                        .as_ref()
-                        .map(|t| self.resolve_type(t))
-                        .unwrap_or(Ty::Unit);
+                    let ret =
+                        f.return_type.as_ref().map(|t| self.resolve_type(t)).unwrap_or(Ty::Unit);
                     Some(TraitMethodDef {
                         name: f.name.node.clone(),
                         params,
@@ -285,17 +263,9 @@ impl TypeChecker {
             .bounds
             .iter()
             .filter_map(|b| {
-                let name = b
-                    .segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name = b.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 let trait_id = self.registry.resolve_trait_name(&name)?;
-                Some(TraitRef {
-                    trait_id,
-                    args: Vec::new(),
-                })
+                Some(TraitRef { trait_id, args: Vec::new() })
             })
             .collect();
 
@@ -312,20 +282,13 @@ impl TypeChecker {
         let target_ty = self.resolve_type(&i.target);
 
         if let Some(trait_path) = &i.trait_path {
-            let trait_name = trait_path
-                .segments
-                .iter()
-                .map(|s| s.node.as_str())
-                .collect::<Vec<_>>()
-                .join(".");
+            let trait_name =
+                trait_path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
             if let Some(trait_id) = self.registry.resolve_trait_name(&trait_name) {
                 let method_names: Vec<String> =
                     i.items.iter().map(|f| f.name.node.clone()).collect();
                 self.registry.register_impl(TraitImpl {
-                    trait_ref: TraitRef {
-                        trait_id,
-                        args: Vec::new(),
-                    },
+                    trait_ref: TraitRef { trait_id, args: Vec::new() },
                     target_ty: target_ty.clone(),
                     methods: method_names,
                     span: i.span,
@@ -354,30 +317,17 @@ impl TypeChecker {
     }
 
     fn build_function_sig(&mut self, f: &ast::Function) -> FunctionSig {
-        let type_params: Vec<String> = f
-            .type_params
-            .iter()
-            .map(|tp| tp.name.node.clone())
-            .collect();
+        let type_params: Vec<String> =
+            f.type_params.iter().map(|tp| tp.name.node.clone()).collect();
         let params: Vec<Ty> = f
             .params
             .iter()
             .filter(|p| p.name.node != "self")
             .map(|p| self.resolve_type(&p.ty))
             .collect();
-        let ret = f
-            .return_type
-            .as_ref()
-            .map(|t| self.resolve_type(t))
-            .unwrap_or(Ty::Unit);
+        let ret = f.return_type.as_ref().map(|t| self.resolve_type(t)).unwrap_or(Ty::Unit);
 
-        FunctionSig {
-            name: f.name.node.clone(),
-            type_params,
-            params,
-            ret,
-            span: f.span,
-        }
+        FunctionSig { name: f.name.node.clone(), type_params, params, ret, span: f.span }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -419,11 +369,7 @@ impl TypeChecker {
         // Reset inference context for this function
         self.infer = InferCtx::new();
 
-        let ret_ty = f
-            .return_type
-            .as_ref()
-            .map(|t| self.resolve_type(t))
-            .unwrap_or(Ty::Unit);
+        let ret_ty = f.return_type.as_ref().map(|t| self.resolve_type(t)).unwrap_or(Ty::Unit);
         self.current_return_type = Some(ret_ty);
 
         self.push_scope();
@@ -456,12 +402,8 @@ impl TypeChecker {
     fn check_impl(&mut self, i: &ast::Impl) {
         // Verify that all required trait methods are implemented
         if let Some(trait_path) = &i.trait_path {
-            let trait_name = trait_path
-                .segments
-                .iter()
-                .map(|s| s.node.as_str())
-                .collect::<Vec<_>>()
-                .join(".");
+            let trait_name =
+                trait_path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
             if let Some(trait_id) = self.registry.resolve_trait_name(&trait_name) {
                 let resolver = TraitResolver::new(&self.registry);
                 let impl_method_names: Vec<&str> =
@@ -478,10 +420,8 @@ impl TypeChecker {
                     }
                 }
             } else {
-                self.errors.push(CompileError::UndefinedTrait {
-                    name: trait_name,
-                    span: trait_path.span,
-                });
+                self.errors
+                    .push(CompileError::UndefinedTrait { name: trait_name, span: trait_path.span });
             }
         }
 
@@ -519,13 +459,7 @@ impl TypeChecker {
 
     fn check_stmt(&mut self, stmt: &ast::Stmt) {
         match stmt {
-            ast::Stmt::Let {
-                is_mut,
-                pattern,
-                ty,
-                value,
-                span,
-            } => {
+            ast::Stmt::Let { is_mut, pattern, ty, value, span } => {
                 let declared_ty = ty.as_ref().map(|t| self.resolve_type(t));
                 let inferred_ty = value.as_ref().map(|v| self.infer_expr(v));
 
@@ -537,8 +471,7 @@ impl TypeChecker {
                     (Some(decl), None) => decl,
                     (None, Some(inf)) => inf,
                     (None, None) => {
-                        self.errors
-                            .push(CompileError::CannotInferType { span: *span });
+                        self.errors.push(CompileError::CannotInferType { span: *span });
                         Ty::Error
                     }
                 };
@@ -557,22 +490,12 @@ impl TypeChecker {
                     self.unify(expected, &ret_ty, *span);
                 }
             }
-            ast::Stmt::Assignment {
-                target,
-                value,
-                span,
-                ..
-            } => {
+            ast::Stmt::Assignment { target, value, span, .. } => {
                 let target_ty = self.infer_expr(target);
                 let value_ty = self.infer_expr(value);
                 self.unify(&target_ty, &value_ty, *span);
             }
-            ast::Stmt::For {
-                pattern,
-                iterable,
-                body,
-                span: _,
-            } => {
+            ast::Stmt::For { pattern, iterable, body, span: _ } => {
                 let iter_ty = self.infer_expr(iterable);
                 // The element type is extracted from the iterable
                 let elem_ty = self.element_type_of(&iter_ty);
@@ -581,11 +504,7 @@ impl TypeChecker {
                 self.check_block(body);
                 self.pop_scope();
             }
-            ast::Stmt::While {
-                condition,
-                body,
-                span: _,
-            } => {
+            ast::Stmt::While { condition, body, span: _ } => {
                 let cond_ty = self.infer_expr(condition);
                 self.unify(&Ty::Bool, &cond_ty, condition.span());
                 self.push_scope();
@@ -598,12 +517,7 @@ impl TypeChecker {
                 self.pop_scope();
             }
             ast::Stmt::Break { .. } | ast::Stmt::Continue { .. } => { /* no type work */ }
-            ast::Stmt::TryCatch {
-                try_block,
-                handlers,
-                finally_block,
-                ..
-            } => {
+            ast::Stmt::TryCatch { try_block, handlers, finally_block, .. } => {
                 self.push_scope();
                 self.check_block(try_block);
                 self.pop_scope();
@@ -659,22 +573,14 @@ impl TypeChecker {
             ast::Expr::Identifier { name, span } => self.lookup_var(name, *span),
 
             ast::Expr::Path { segments, span } => {
-                let name = segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name = segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 self.lookup_var(&name, *span)
             }
 
             // ── Compound ────────────────────────────────────────────────
             ast::Expr::Tuple { elements, .. } => {
                 let tys: Vec<Ty> = elements.iter().map(|e| self.infer_expr(e)).collect();
-                if tys.is_empty() {
-                    Ty::Unit
-                } else {
-                    Ty::Tuple(tys)
-                }
+                if tys.is_empty() { Ty::Unit } else { Ty::Tuple(tys) }
             }
             ast::Expr::Array { elements, span: _ } => {
                 if elements.is_empty() {
@@ -690,12 +596,8 @@ impl TypeChecker {
                 }
             }
             ast::Expr::StructInit { path, fields, span } => {
-                let name = path
-                    .segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name =
+                    path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 if let Some(type_id) = self.registry.resolve_name(&name) {
                     // Verify fields
                     if let Some(struct_def) = self.registry.lookup_struct(type_id).cloned() {
@@ -719,26 +621,18 @@ impl TypeChecker {
                         }
                         Ty::Adt(type_id, Vec::new())
                     } else {
-                        self.errors.push(CompileError::UndefinedType {
-                            name: name.clone(),
-                            span: *span,
-                        });
+                        self.errors
+                            .push(CompileError::UndefinedType { name: name.clone(), span: *span });
                         Ty::Error
                     }
                 } else {
-                    self.errors
-                        .push(CompileError::UndefinedType { name, span: *span });
+                    self.errors.push(CompileError::UndefinedType { name, span: *span });
                     Ty::Error
                 }
             }
 
             // ── Operators ───────────────────────────────────────────────
-            ast::Expr::Binary {
-                left,
-                op,
-                right,
-                span,
-            } => {
+            ast::Expr::Binary { left, op, right, span } => {
                 let left_ty = self.infer_expr(left);
                 let right_ty = self.infer_expr(right);
                 self.check_binary_op(*op, &left_ty, &right_ty, *span)
@@ -749,52 +643,30 @@ impl TypeChecker {
             }
 
             // ── Access ──────────────────────────────────────────────────
-            ast::Expr::FieldAccess {
-                object,
-                field,
-                span,
-            } => {
+            ast::Expr::FieldAccess { object, field, span } => {
                 let obj_ty = self.infer_expr(object);
                 self.resolve_field_type(&obj_ty, &field.node, *span)
             }
-            ast::Expr::MethodCall {
-                object,
-                method,
-                args,
-                span,
-                ..
-            } => {
+            ast::Expr::MethodCall { object, method, args, span, .. } => {
                 let obj_ty = self.infer_expr(object);
                 let arg_tys: Vec<Ty> = args.iter().map(|a| self.infer_expr(a)).collect();
                 self.resolve_method_call(&obj_ty, &method.node, &arg_tys, *span)
             }
-            ast::Expr::Index {
-                object,
-                index,
-                span,
-            } => {
+            ast::Expr::Index { object, index, span } => {
                 let obj_ty = self.infer_expr(object);
                 let idx_ty = self.infer_expr(index);
                 self.check_index_op(&obj_ty, &idx_ty, *span)
             }
 
             // ── Calls ───────────────────────────────────────────────────
-            ast::Expr::Call {
-                callee, args, span, ..
-            } => {
+            ast::Expr::Call { callee, args, span, .. } => {
                 let callee_ty = self.infer_expr(callee);
                 let arg_tys: Vec<Ty> = args.iter().map(|a| self.infer_expr(a)).collect();
                 self.check_call(&callee_ty, &arg_tys, *span)
             }
 
             // ── Control flow ────────────────────────────────────────────
-            ast::Expr::If {
-                condition,
-                then_block,
-                elif_clauses,
-                else_block,
-                span,
-            } => {
+            ast::Expr::If { condition, then_block, elif_clauses, else_block, span } => {
                 let cond_ty = self.infer_expr(condition);
                 self.unify(&Ty::Bool, &cond_ty, condition.span());
 
@@ -820,11 +692,7 @@ impl TypeChecker {
 
                 then_ty
             }
-            ast::Expr::Match {
-                scrutinee,
-                arms,
-                span,
-            } => {
+            ast::Expr::Match { scrutinee, arms, span } => {
                 let scrut_ty = self.infer_expr(scrutinee);
 
                 // Check exhaustiveness
@@ -850,10 +718,7 @@ impl TypeChecker {
             // ── References ──────────────────────────────────────────────
             ast::Expr::Reference { is_mut, inner, .. } => {
                 let inner_ty = self.infer_expr(inner);
-                Ty::Reference {
-                    is_mut: *is_mut,
-                    inner: Box::new(inner_ty),
-                }
+                Ty::Reference { is_mut: *is_mut, inner: Box::new(inner_ty) }
             }
             ast::Expr::Deref { inner, span } => {
                 let inner_ty = self.infer_expr(inner);
@@ -886,12 +751,7 @@ impl TypeChecker {
             }
 
             // ── Lambda ──────────────────────────────────────────────────
-            ast::Expr::Lambda {
-                params,
-                return_type,
-                body,
-                ..
-            } => {
+            ast::Expr::Lambda { params, return_type, body, .. } => {
                 self.push_scope();
                 let param_tys: Vec<Ty> = params
                     .iter()
@@ -907,15 +767,9 @@ impl TypeChecker {
                 let body_ty = self.infer_expr(body);
                 self.pop_scope();
 
-                let ret = return_type
-                    .as_ref()
-                    .map(|t| self.resolve_type(t))
-                    .unwrap_or(body_ty);
+                let ret = return_type.as_ref().map(|t| self.resolve_type(t)).unwrap_or(body_ty);
 
-                Ty::Function {
-                    params: param_tys,
-                    ret: Box::new(ret),
-                }
+                Ty::Function { params: param_tys, ret: Box::new(ret) }
             }
 
             // ── Async/await ─────────────────────────────────────────────
@@ -999,12 +853,8 @@ impl TypeChecker {
                 }
             }
             ast::Pattern::Struct { path, fields, .. } => {
-                let name = path
-                    .segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name =
+                    path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 if let Some(type_id) = self.registry.resolve_name(&name) {
                     if let Some(struct_def) = self.registry.lookup_struct(type_id).cloned() {
                         for pf in fields {
@@ -1022,12 +872,8 @@ impl TypeChecker {
                 }
             }
             ast::Pattern::Variant { path, data, .. } => {
-                let name = path
-                    .segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name =
+                    path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 // Try to look up as an enum variant
                 if let Some(ref inner) = data {
                     // We'd need to resolve the variant's associated type
@@ -1045,11 +891,7 @@ impl TypeChecker {
                 self.define_local(&name.node, expected.clone(), false);
                 self.check_pattern(pattern, expected);
             }
-            ast::Pattern::Slice {
-                elements,
-                rest,
-                span,
-            } => {
+            ast::Pattern::Slice { elements, rest, span } => {
                 let elem_ty = match expected {
                     Ty::Array(elem, _) | Ty::Slice(elem) => (**elem).clone(),
                     _ => {
@@ -1189,14 +1031,8 @@ impl TypeChecker {
                     Ty::Error
                 }
             }
-            Ref => Ty::Reference {
-                is_mut: false,
-                inner: Box::new(operand.clone()),
-            },
-            MutRef => Ty::Reference {
-                is_mut: true,
-                inner: Box::new(operand.clone()),
-            },
+            Ref => Ty::Reference { is_mut: false, inner: Box::new(operand.clone()) },
+            MutRef => Ty::Reference { is_mut: true, inner: Box::new(operand.clone()) },
             Deref => match operand {
                 Ty::Reference { inner, .. } => (**inner).clone(),
                 _ => {
@@ -1233,10 +1069,7 @@ impl TypeChecker {
                 self.registry.fresh_type_var()
             }
             _ => {
-                self.errors.push(CompileError::NotCallable {
-                    ty: format!("{callee}"),
-                    span,
-                });
+                self.errors.push(CompileError::NotCallable { ty: format!("{callee}"), span });
                 Ty::Error
             }
         }
@@ -1357,12 +1190,8 @@ impl TypeChecker {
         self.registry.resolve_ast_type(ast_type).unwrap_or_else(|| {
             // If we can't resolve, check if it's a type param in scope
             if let ast::Type::Named(path) = ast_type {
-                let name = path
-                    .segments
-                    .iter()
-                    .map(|s| s.node.as_str())
-                    .collect::<Vec<_>>()
-                    .join(".");
+                let name =
+                    path.segments.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                 if let Some(binding) = self.lookup_binding(&name) {
                     return binding.ty.clone();
                 }
@@ -1381,9 +1210,7 @@ impl TypeChecker {
 
     fn define_local(&mut self, name: &str, ty: Ty, is_mut: bool) {
         if let Some(scope) = self.scopes.last_mut() {
-            scope
-                .bindings
-                .insert(name.to_string(), Binding { ty, is_mut });
+            scope.bindings.insert(name.to_string(), Binding { ty, is_mut });
         }
     }
 
@@ -1422,10 +1249,7 @@ impl TypeChecker {
 
         // Check function signatures
         if let Some(sig) = self.functions.get(name).cloned() {
-            return Ty::Function {
-                params: sig.params,
-                ret: Box::new(sig.ret),
-            };
+            return Ty::Function { params: sig.params, ret: Box::new(sig.ret) };
         }
 
         // Check if it's a type constructor
@@ -1441,10 +1265,7 @@ impl TypeChecker {
             _ => {}
         }
 
-        self.errors.push(CompileError::UndefinedVariable {
-            name: name.to_string(),
-            span,
-        });
+        self.errors.push(CompileError::UndefinedVariable { name: name.to_string(), span });
         Ty::Error
     }
 
@@ -1499,10 +1320,7 @@ impl TypeChecker {
     fn check_exhaustiveness(&mut self, scrutinee_ty: &Ty, arms: &[ast::MatchArm], span: Span) {
         let result = exhaustiveness::check(scrutinee_ty, arms, &self.registry);
         if let Some(missing) = result {
-            self.errors.push(CompileError::NonExhaustiveMatch {
-                missing_patterns: missing,
-                span,
-            });
+            self.errors.push(CompileError::NonExhaustiveMatch { missing_patterns: missing, span });
         }
     }
 }
