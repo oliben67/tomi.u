@@ -1,0 +1,40 @@
+# Enums
+# Demonstrates: simple enums, enum variants, enum usage
+
+enum Direction:
+    North
+    South
+    East
+    West
+
+enum Season:
+    Spring
+    Summer
+    Autumn
+    Winter
+
+enum Priority:
+    Low
+    Medium
+    High
+    Critical
+
+def show_direction():
+    let dir = Direction::North
+    let dir2 = Direction::South
+    print(dir)
+    print(dir2)
+
+def show_season():
+    let season = Season::Summer
+    print(season)
+
+def show_priority():
+    let prio = Priority::High
+    print(prio)
+
+@entrypoint
+def main():
+    show_direction()
+    show_season()
+    show_priority()

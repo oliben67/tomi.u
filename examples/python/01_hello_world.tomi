@@ -1,0 +1,8 @@
+# Hello World - The classic first program
+# Demonstrates: basic function, @entrypoint, print, string variables
+
+@entrypoint
+def main():
+    let greeting = "Hello from tomi.u, compiled to Python!"
+    print(greeting)
+    print("Welcome to the tomi.u language")

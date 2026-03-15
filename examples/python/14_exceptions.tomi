@@ -1,0 +1,24 @@
+# Exception Handling
+# Demonstrates: try/catch blocks for error handling
+
+def risky_divide(a: i32, b: i32) -> i32:
+    if b == 0:
+        return -1
+    return a / b
+
+@entrypoint
+def main():
+    # Try-catch block
+    try:
+        let result = risky_divide(10, 2)
+        print(result)
+    catch e:
+        print("caught an error")
+
+    # Safe division
+    let safe = risky_divide(100, 5)
+    print(safe)
+
+    # Division by zero (handled by function)
+    let bad = risky_divide(10, 0)
+    print(bad)

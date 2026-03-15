@@ -1,0 +1,35 @@
+# Comments and Documentation
+# Demonstrates: inline comments, comments inside functions
+
+# This is a module-level comment
+# tomi.u uses # for single-line comments
+
+def factorial(n: i32) -> i32:
+    # Base case: 0! = 1 and 1! = 1
+    if n <= 1:
+        return 1
+    # Recursive case: n! = n * (n-1)!
+    return n * factorial(n - 1)
+
+# Checks if a number is prime
+def is_prime(n: i32) -> bool:
+    if n < 2:
+        return false
+    # Check divisibility up to sqrt(n) approximation
+    let mut i = 2
+    while i * i <= n:
+        if n % i == 0:
+            return false
+        i = i + 1
+    return true
+
+@entrypoint
+def main():
+    # Compute some factorials
+    print(factorial(5))
+    print(factorial(8))
+
+    # Check some primes
+    print(is_prime(7))
+    print(is_prime(10))
+    print(is_prime(97))

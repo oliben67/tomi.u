@@ -249,10 +249,15 @@ impl TomiParser {
             None
         };
 
-        self.expect(TokenKind::Colon)?;
-
-        // Parse body
-        let body = self.parse_block()?;
+        // Parse body — trait method declarations may omit the colon and body
+        let body = if self.check(TokenKind::Colon) {
+            self.advance();
+            self.parse_block()?
+        } else {
+            // Bodyless declaration (e.g. trait method signature)
+            self.expect_newline()?;
+            Block { stmts: Vec::new(), span: self.previous_span() }
+        };
 
         let end = self.previous_span();
 
@@ -998,7 +1003,32 @@ impl TomiParser {
     // ═══════════════════════════════════════════════════════════════════════
 
     fn parse_expression(&mut self) -> Result<Expr, CompileError> {
-        self.parse_expr_with_precedence(0)
+        let expr = self.parse_expr_with_precedence(0)?;
+
+        // Handle range operators (lowest precedence, outside Pratt loop)
+        if self.check(TokenKind::DotDot) || self.check(TokenKind::DotDotEq) {
+            let inclusive = self.check(TokenKind::DotDotEq);
+            self.advance();
+            let start_span = expr.span();
+            // Parse the end of the range (if present)
+            let end = if !self.check(TokenKind::Colon)
+                && !self.check(TokenKind::Newline)
+                && !self.check(TokenKind::Eof)
+                && !self.check(TokenKind::RParen)
+                && !self.check(TokenKind::RBracket)
+                && !self.check(TokenKind::RBrace)
+                && !self.check(TokenKind::Comma)
+            {
+                Some(Box::new(self.parse_expr_with_precedence(0)?))
+            } else {
+                None
+            };
+            let end_span = end.as_ref().map(|e| e.span()).unwrap_or(start_span);
+            let span = start_span.merge(end_span);
+            return Ok(Expr::Range { start: Some(Box::new(expr)), end, inclusive, span });
+        }
+
+        Ok(expr)
     }
 
     fn parse_expr_with_precedence(&mut self, min_prec: u8) -> Result<Expr, CompileError> {
@@ -1178,6 +1208,55 @@ impl TomiParser {
             TokenKind::Identifier | TokenKind::SelfValue | TokenKind::SelfType => {
                 let name = self.current_text().to_string();
                 self.advance();
+
+                // Check for path syntax: Name::Variant or Name::Variant(args)
+                if self.check(TokenKind::ColonColon) {
+                    let mut segments = vec![Spanned::new(name, start)];
+                    while self.check(TokenKind::ColonColon) {
+                        self.advance(); // consume '::'
+                        let seg = self.parse_identifier()?;
+                        segments.push(seg);
+                    }
+                    let end_span = segments.last().map(|s| s.span).unwrap_or(start);
+                    let span = start.merge(end_span);
+
+                    // Check for constructor call: Path::Variant(args)
+                    if self.check(TokenKind::LParen) {
+                        self.advance();
+                        let args = self
+                            .parse_comma_separated(TokenKind::RParen, |p| p.parse_expression())?;
+                        self.expect(TokenKind::RParen)?;
+                        let call_span = start.merge(self.previous_span());
+                        return Ok(Expr::Call {
+                            callee: Box::new(Expr::Path { segments, span }),
+                            type_args: Vec::new(),
+                            args,
+                            span: call_span,
+                        });
+                    }
+
+                    // Check for struct init: Path::Variant { field: value }
+                    if self.check(TokenKind::LBrace) {
+                        self.advance();
+                        let fields = self.parse_comma_separated(TokenKind::RBrace, |p| {
+                            let field_start = p.current_span();
+                            let field_name = p.parse_identifier()?;
+                            p.expect(TokenKind::Colon)?;
+                            let value = p.parse_expression()?;
+                            let field_span = field_start.merge(p.previous_span());
+                            Ok(FieldInit { name: field_name, value: Some(value), span: field_span })
+                        })?;
+                        self.expect(TokenKind::RBrace)?;
+                        let init_span = start.merge(self.previous_span());
+                        return Ok(Expr::StructInit {
+                            path: TypePath { segments: segments.clone(), span },
+                            fields,
+                            span: init_span,
+                        });
+                    }
+
+                    return Ok(Expr::Path { segments, span });
+                }
 
                 // Check for struct init: Name { field: value }
                 if self.check(TokenKind::LBrace) {

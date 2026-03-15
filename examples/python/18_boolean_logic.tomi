@@ -1,0 +1,49 @@
+# Boolean Logic and Conditions
+# Demonstrates: logical operators, comparisons, complex conditions
+
+def can_vote(age: i32, is_citizen: bool) -> bool:
+    return age >= 18 and is_citizen
+
+def can_drive(age: i32, has_license: bool) -> bool:
+    return age >= 16 and has_license
+
+def is_leap_year(year: i32) -> bool:
+    if year % 400 == 0:
+        return true
+    if year % 100 == 0:
+        return false
+    return year % 4 == 0
+
+def days_in_month(month: i32, year: i32) -> i32:
+    if month == 2:
+        if is_leap_year(year):
+            return 29
+        else:
+            return 28
+    elif month == 4 or month == 6 or month == 9 or month == 11:
+        return 30
+    else:
+        return 31
+
+def in_range(value: i32, low: i32, high: i32) -> bool:
+    return value >= low and value <= high
+
+@entrypoint
+def main():
+    print(can_vote(21, true))
+    print(can_vote(15, true))
+    print(can_vote(21, false))
+
+    print(can_drive(18, true))
+    print(can_drive(14, false))
+
+    print(is_leap_year(2024))
+    print(is_leap_year(1900))
+    print(is_leap_year(2000))
+
+    print(days_in_month(2, 2024))
+    print(days_in_month(2, 2023))
+    print(days_in_month(7, 2024))
+
+    print(in_range(5, 1, 10))
+    print(in_range(15, 1, 10))

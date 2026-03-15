@@ -1,0 +1,18 @@
+# String functions and passing strings between functions
+
+def greet(name: String) -> String:
+    return name
+
+def make_greeting(prefix: String, name: String) -> String:
+    return prefix
+
+@entrypoint
+def main():
+    let msg = greet("World")
+    print(msg)
+
+    let hello = make_greeting("Hello", "Alice")
+    print(hello)
+
+    let message = "direct string"
+    print(message)

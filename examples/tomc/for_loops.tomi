@@ -1,0 +1,15 @@
+# For loops with range expressions
+
+def sum_range(n: i32) -> i32:
+    let mut total = 0
+    for i in 0..n:
+        total = total + i
+    return total
+
+@entrypoint
+def main():
+    for i in 0..5:
+        print(i)
+
+    let total = sum_range(10)
+    print(total)

@@ -173,11 +173,10 @@ impl PythonBackend {
 
     fn map_type_name<'a>(&self, name: &'a str) -> &'a str {
         match name {
-            "Int8" | "Int16" | "Int32" | "Int64" | "UInt8" | "UInt16" | "UInt32" | "UInt64" => {
-                "int"
-            }
-            "Float32" | "Float64" => "float",
-            "Bool" => "bool",
+            "Int8" | "Int16" | "Int32" | "Int64" | "UInt8" | "UInt16" | "UInt32" | "UInt64"
+            | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" => "int",
+            "Float32" | "Float64" | "f32" | "f64" => "float",
+            "Bool" | "bool" => "bool",
             "String" => "str",
             "Char" => "str",
             "Unit" => "None",

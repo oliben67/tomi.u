@@ -1,0 +1,21 @@
+# Variables, mutability, and arithmetic in tomi.u
+
+@entrypoint
+def main():
+    let x = 10
+    let y = 20
+
+    let width: i32 = 100
+    let height: i32 = 50
+
+    let sum = x + y
+    let area = width * height
+
+    let mut counter = 0
+    counter = counter + 1
+    counter = counter + 1
+
+    let is_ready: bool = true
+    let is_done = false
+
+    print("variables done")

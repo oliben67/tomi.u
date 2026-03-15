@@ -1,0 +1,47 @@
+# For Loops and Ranges
+# Demonstrates: for-in loops, range expressions, nested loops
+
+def sum_range(n: i32) -> i32:
+    let mut total = 0
+    for i in 0..n:
+        total = total + i
+    return total
+
+def sum_squares(n: i32) -> i32:
+    let mut total = 0
+    for i in 1..n:
+        total = total + i * i
+    return total
+
+def print_multiplication_table(size: i32):
+    for i in 1..size:
+        for j in 1..size:
+            let product = i * j
+            print(product)
+
+def count_divisors(n: i32) -> i32:
+    let mut count = 0
+    for i in 1..n:
+        if n % i == 0:
+            count = count + 1
+    # Count n itself
+    count = count + 1
+    return count
+
+@entrypoint
+def main():
+    # Basic range iteration
+    for i in 0..5:
+        print(i)
+
+    # Sum of 0..10
+    let total = sum_range(10)
+    print(total)
+
+    # Sum of squares 1..6
+    let sq = sum_squares(6)
+    print(sq)
+
+    # Count divisors of 28
+    let divs = count_divisors(28)
+    print(divs)

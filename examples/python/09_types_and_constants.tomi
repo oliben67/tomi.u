@@ -1,0 +1,42 @@
+# Type Aliases and Constants
+# Demonstrates: type keyword, const declarations, using aliases in functions
+
+type Meters = i32
+type Seconds = i32
+type Speed = i32
+type Celsius = i32
+
+const GRAVITY: i32 = 10
+const FREEZING_POINT: i32 = 0
+const BOILING_POINT: i32 = 100
+const MAX_SPEED: i32 = 300
+
+def calculate_speed(distance: Meters, time: Seconds) -> Speed:
+    if time == 0:
+        return 0
+    return distance / time
+
+def is_frozen(temp: Celsius) -> bool:
+    return temp <= FREEZING_POINT
+
+def is_boiling(temp: Celsius) -> bool:
+    return temp >= BOILING_POINT
+
+def free_fall_distance(time: Seconds) -> Meters:
+    # d = 1/2 * g * t^2 (integer approximation)
+    return GRAVITY * time * time / 2
+
+@entrypoint
+def main():
+    let speed = calculate_speed(100, 5)
+    print(speed)
+
+    print(is_frozen(-10))
+    print(is_frozen(25))
+    print(is_boiling(150))
+
+    let distance = free_fall_distance(3)
+    print(distance)
+
+    print(MAX_SPEED)
+    print(GRAVITY)

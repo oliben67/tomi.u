@@ -63,6 +63,8 @@ pub struct TypeChecker {
     pub registry: TypeRegistry,
     /// Function signatures by name (top-level and methods).
     pub functions: HashMap<String, FunctionSig>,
+    /// Module-level constants by name.
+    constants: HashMap<String, Ty>,
     /// Stack of lexical scopes.
     scopes: Vec<Scope>,
     /// Inference context for the current function body.
@@ -84,6 +86,7 @@ impl TypeChecker {
         let mut checker = Self {
             registry: TypeRegistry::new(),
             functions: HashMap::new(),
+            constants: HashMap::new(),
             scopes: Vec::new(),
             infer: InferCtx::new(),
             errors: Vec::new(),
@@ -95,13 +98,15 @@ impl TypeChecker {
 
     /// Register built-in functions available in every tomi.u program.
     fn register_builtins(&mut self) {
+        // print/println accept any displayable type (impl Display in generated Rust)
+        let display_ty = self.registry.fresh_type_var();
         let builtins = [
-            ("print", vec![Ty::String], Ty::Unit),
-            ("println", vec![Ty::String], Ty::Unit),
+            ("print", vec![display_ty.clone()], Ty::Unit),
+            ("println", vec![display_ty.clone()], Ty::Unit),
             ("io.println", vec![Ty::String], Ty::Unit),
             ("io.print", vec![Ty::String], Ty::Unit),
             ("io.eprintln", vec![Ty::String], Ty::Unit),
-            ("dbg", vec![Ty::String], Ty::Unit),
+            ("dbg", vec![display_ty], Ty::Unit),
         ];
         for (name, params, ret) in builtins {
             self.functions.insert(
@@ -148,7 +153,7 @@ impl TypeChecker {
             ast::Item::Impl(i) => self.collect_impl(i),
             ast::Item::Function(f) => self.collect_function(f),
             ast::Item::TypeAlias(t) => self.collect_type_alias(t),
-            ast::Item::Const(_) => { /* collected during check pass */ }
+            ast::Item::Const(c) => self.collect_const(c),
         }
     }
 
@@ -423,6 +428,15 @@ impl TypeChecker {
         for method in &i.items {
             self.check_function(method);
         }
+    }
+
+    fn collect_const(&mut self, c: &ast::Const) {
+        let ty = if let Some(ref ann) = c.ty {
+            self.resolve_type(ann)
+        } else {
+            self.infer_expr(&c.value)
+        };
+        self.constants.insert(c.name.node.clone(), ty);
     }
 
     fn check_const(&mut self, c: &ast::Const) {
@@ -1213,6 +1227,24 @@ impl TypeChecker {
         // Check local scopes
         if let Some(b) = self.lookup_binding(name) {
             return b.ty.clone();
+        }
+
+        // Check module-level constants
+        if let Some(ty) = self.constants.get(name).cloned() {
+            return ty;
+        }
+
+        // Check for enum variant paths (e.g. "Color.Red")
+        if let Some(dot_pos) = name.find('.') {
+            let (enum_name, variant_name) = name.split_at(dot_pos);
+            let variant_name = &variant_name[1..]; // skip the dot
+            if let Some(type_id) = self.registry.resolve_name(enum_name) {
+                if let Some(enum_def) = self.registry.lookup_enum(type_id) {
+                    if enum_def.variants.iter().any(|v| v.name == variant_name) {
+                        return Ty::Adt(type_id, vec![]);
+                    }
+                }
+            }
         }
 
         // Check function signatures

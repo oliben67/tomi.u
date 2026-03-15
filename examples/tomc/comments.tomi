@@ -1,0 +1,15 @@
+# Comments inside function bodies
+
+def factorial(n: i32) -> i32:
+    # Base case
+    if n <= 1:
+        return 1
+    # Recursive case
+    return n * factorial(n - 1)
+
+@entrypoint
+def main():
+    # Compute factorial of 5
+    let result = factorial(5)
+    # Print the result
+    print(result)

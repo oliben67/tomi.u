@@ -293,13 +293,17 @@ impl RustBackend {
                     self.writer.write(&ret_str);
                 }
 
-                // Function body is always present in our AST
-                self.writer.writeln(" {");
-                self.writer.indent();
-                let block_str = self.generate_block(&m.body)?;
-                self.writer.write(&block_str);
-                self.writer.dedent();
-                self.writer.writeln("}");
+                // Empty body = trait method declaration (no default impl)
+                if m.body.stmts.is_empty() {
+                    self.writer.writeln(";");
+                } else {
+                    self.writer.writeln(" {");
+                    self.writer.indent();
+                    let block_str = self.generate_block(&m.body)?;
+                    self.writer.write(&block_str);
+                    self.writer.dedent();
+                    self.writer.writeln("}");
+                }
             }
             TraitItem::Type { name, bounds, .. } => {
                 self.writer.write("type ");
@@ -647,7 +651,9 @@ impl BackendCodegen for RustBackend {
                 let s = value.to_string();
                 if s.contains('.') { s } else { format!("{}.0", s) }
             }
-            Expr::StringLiteral { value, .. } => format!("\"{}\"", value.replace('"', "\\\"")),
+            Expr::StringLiteral { value, .. } => {
+                format!("\"{}\".to_string()", value.replace('"', "\\\""))
+            }
             Expr::InterpolatedString { parts, .. } => {
                 // Generate format! macro
                 let mut format_str = String::new();
@@ -700,7 +706,14 @@ impl BackendCodegen for RustBackend {
             }
             Expr::FieldAccess { object, field, .. } => {
                 let obj_str = self.generate_expr(object)?;
-                format!("{}.{}", obj_str, field.node)
+                // tomi.u has no ownership semantics, so clone field values
+                // accessed through references (e.g. self.name) to avoid
+                // borrow-checker issues in the generated Rust code.
+                if matches!(**object, Expr::Identifier { ref name, .. } if name == "self") {
+                    format!("{}.{}.clone()", obj_str, field.node)
+                } else {
+                    format!("{}.{}", obj_str, field.node)
+                }
             }
             Expr::Index { object, index, .. } => {
                 let obj_str = self.generate_expr(object)?;
@@ -845,7 +858,11 @@ impl BackendCodegen for RustBackend {
             }
             Stmt::Expr(expr) => {
                 let expr_str = self.generate_expr(expr)?;
-                format!("{};", expr_str)
+                // Block-like expressions don't need trailing semicolons
+                match expr {
+                    Expr::Match { .. } | Expr::If { .. } | Expr::Block { .. } => expr_str,
+                    _ => format!("{};", expr_str),
+                }
             }
             Stmt::Assignment { target, op, value, .. } => {
                 let target_str = self.generate_expr(target)?;

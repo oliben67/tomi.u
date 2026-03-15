@@ -142,16 +142,17 @@ pub enum TokenKind {
     // ═══════════════════════════════════════════════════════════════════════
     // Punctuation
     // ═══════════════════════════════════════════════════════════════════════
-    Dot,       // .
-    DotDot,    // ..
-    DotDotEq,  // ..=
-    Comma,     // ,
-    Colon,     // :
-    Semicolon, // ;
-    Arrow,     // ->
-    FatArrow,  // =>
-    At,        // @
-    Question,  // ?
+    Dot,        // .
+    DotDot,     // ..
+    DotDotEq,   // ..=
+    Comma,      // ,
+    Colon,      // :
+    ColonColon, // ::
+    Semicolon,  // ;
+    Arrow,      // ->
+    FatArrow,   // =>
+    At,         // @
+    Question,   // ?
 
     // Brackets
     LParen,   // (
@@ -263,6 +264,7 @@ impl TokenKind {
             Self::DotDotEq => "'..='",
             Self::Comma => "','",
             Self::Colon => "':'",
+            Self::ColonColon => "'::'",
             Self::Semicolon => "';'",
             Self::Arrow => "'->'",
             Self::FatArrow => "'=>'",

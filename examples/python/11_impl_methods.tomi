@@ -1,0 +1,35 @@
+# Impl Methods (inherent implementation)
+# Demonstrates: methods on structs without traits
+
+struct Counter:
+    value: i32
+
+impl Counter:
+    def increment(self) -> Counter:
+        return Counter { value: self.value + 1 }
+
+    def decrement(self) -> Counter:
+        return Counter { value: self.value - 1 }
+
+    def is_zero(self) -> bool:
+        return self.value == 0
+
+struct Stack:
+    size: i32
+
+impl Stack:
+    def is_empty(self) -> bool:
+        return self.size == 0
+
+@entrypoint
+def main():
+    let c = Counter { value: 0 }
+    let c1 = c.increment()
+    let c2 = c1.increment()
+    let c3 = c2.increment()
+    print(c3.value)
+    print(c.is_zero())
+    print(c3.is_zero())
+
+    let s = Stack { size: 0 }
+    print(s.is_empty())

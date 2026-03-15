@@ -1,0 +1,24 @@
+# Type aliases and enum declarations
+
+type Score = i32
+type Width = i32
+type Height = i32
+
+enum Direction:
+    Up
+    Down
+    Left
+    Right
+
+struct Size:
+    w: Width
+    h: Height
+
+def compute_area(w: Width, h: Height) -> Score:
+    return w * h
+
+@entrypoint
+def main():
+    let s = Size { w: 40, h: 30 }
+    let area = compute_area(s.w, s.h)
+    print("types done")

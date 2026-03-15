@@ -1,0 +1,26 @@
+# Functions with parameters, return types, and visibility
+
+def square(n: i32) -> i32:
+    return n * n
+
+def multiply(a: i32, b: i32) -> i32:
+    return a * b
+
+# Public function (visible outside the module)
+pub def clamp(value: i32, min_val: i32, max_val: i32) -> i32:
+    if value < min_val:
+        return min_val
+    if value > max_val:
+        return max_val
+    return value
+
+def is_positive(n: i32) -> bool:
+    return n > 0
+
+@entrypoint
+def main():
+    let result = square(5)
+    let product = multiply(3, 7)
+    let clamped = clamp(150, 0, 100)
+    let positive = is_positive(42)
+    print("functions done")

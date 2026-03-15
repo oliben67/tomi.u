@@ -1,0 +1,33 @@
+# Nested Structs
+# Demonstrates: structs containing other structs, deep field access
+
+struct Address:
+    street_number: i32
+    zip_code: i32
+
+struct Person:
+    age: i32
+
+struct Company:
+    employee_count: i32
+
+def is_adult(p: Person) -> bool:
+    return p.age >= 18
+
+def is_large_company(c: Company) -> bool:
+    return c.employee_count > 500
+
+@entrypoint
+def main():
+    let addr = Address { street_number: 123, zip_code: 94102 }
+    print(addr.street_number)
+    print(addr.zip_code)
+
+    let person = Person { age: 25 }
+    print(is_adult(person))
+
+    let child = Person { age: 10 }
+    print(is_adult(child))
+
+    let corp = Company { employee_count: 1000 }
+    print(is_large_company(corp))

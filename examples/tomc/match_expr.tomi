@@ -1,0 +1,19 @@
+# Match expressions for branching on values
+
+@entrypoint
+def main():
+    let code: i32 = 2
+
+    match code:
+        0 => print("zero")
+        1 => print("one")
+        2 => print("two")
+        _ => print("other")
+
+    let mut i = 0
+    while i < 4:
+        match i:
+            0 => print("start")
+            3 => print("end")
+            _ => print("middle")
+        i = i + 1

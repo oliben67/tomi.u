@@ -144,7 +144,7 @@ impl<'a> Lexer<'a> {
             '~' => self.single(TokenKind::Tilde),
             '.' => self.lex_dot(),
             ',' => self.single(TokenKind::Comma),
-            ':' => self.single(TokenKind::Colon),
+            ':' => self.lex_colon(),
             ';' => self.single(TokenKind::Semicolon),
             '(' => self.single(TokenKind::LParen),
             ')' => self.single(TokenKind::RParen),
@@ -178,11 +178,16 @@ impl<'a> Lexer<'a> {
             spaces += 1;
         }
 
-        // Skip blank lines and comment-only lines
+        // Skip blank lines (but NOT comment lines — they carry indentation)
         if let Some((_, ch)) = self.peek() {
-            if ch == '\n' || ch == '\r' || ch == '#' {
+            if ch == '\n' || ch == '\r' {
                 return Ok(None);
             }
+        }
+
+        // Also skip if at EOF
+        if self.peek().is_none() {
+            return Ok(None);
         }
 
         let current_indent = *self.indent_stack.last().unwrap();
@@ -507,6 +512,17 @@ impl<'a> Lexer<'a> {
     }
 
     /// Lex `.`, `..`, or `..=`.
+    fn lex_colon(&mut self) -> Token {
+        let start = self.current_pos;
+        self.advance();
+        if self.peek_char() == Some(':') {
+            self.advance();
+            Token::new(TokenKind::ColonColon, Span::new(start, self.current_pos))
+        } else {
+            Token::new(TokenKind::Colon, Span::new(start, self.current_pos))
+        }
+    }
+
     fn lex_dot(&mut self) -> Token {
         let start = self.current_pos;
         self.advance();
