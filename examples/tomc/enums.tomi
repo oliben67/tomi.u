@@ -1,0 +1,18 @@
+# Enum declarations with variant access
+
+enum Direction:
+    Up
+    Down
+    Left
+    Right
+
+enum Color:
+    Red
+    Green
+    Blue
+
+@entrypoint
+def main():
+    let dir = Direction::Up
+    let color = Color::Blue
+    print("enums done")

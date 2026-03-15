@@ -1,0 +1,25 @@
+# Traits with struct implementations
+
+trait Describable:
+    def describe(self) -> String
+
+struct Circle:
+    radius: i32
+
+impl Describable for Circle:
+    def describe(self) -> String:
+        return "circle"
+
+struct Square:
+    side: i32
+
+impl Describable for Square:
+    def describe(self) -> String:
+        return "square"
+
+@entrypoint
+def main():
+    let c = Circle { radius: 5 }
+    let s = Square { side: 10 }
+    print(c.describe())
+    print(s.describe())

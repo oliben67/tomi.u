@@ -1,0 +1,18 @@
+# Constants and type aliases
+
+const MAX_SIZE: i32 = 100
+const MIN_SIZE: i32 = 10
+
+type Width = i32
+type Height = i32
+type Area = i32
+
+def compute_area(w: Width, h: Height) -> Area:
+    return w * h
+
+@entrypoint
+def main():
+    let w = MAX_SIZE
+    let h = MIN_SIZE
+    let area = compute_area(w, h)
+    print(area)
