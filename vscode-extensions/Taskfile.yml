@@ -81,10 +81,11 @@ tasks:
       - LICENSE
       - images/**/*
     generates:
-      - ../tomi-language-support.vsix
+      - ../.artifacts/tomi-language-support.vsix
     method: checksum
     cmds:
-      - npx @vscode/vsce package --out ../tomi-language-support.vsix
+      - mkdir -p ../.artifacts
+      - npx @vscode/vsce package --out ../.artifacts/tomi-language-support.vsix
 
   package:file-icons:
     desc: "Package tomi-files-icons as a .vsix"
@@ -97,10 +98,11 @@ tasks:
       - README.md
       - LICENSE
     generates:
-      - ../tomi-files-icons.vsix
+      - ../.artifacts/tomi-files-icons.vsix
     method: checksum
     cmds:
-      - npx @vscode/vsce package --out ../tomi-files-icons.vsix
+      - mkdir -p ../.artifacts
+      - npx @vscode/vsce package --out ../.artifacts/tomi-files-icons.vsix
 
   # ─────────────────────────────────────────────────────────────────
   # Install (local)
@@ -116,13 +118,13 @@ tasks:
     desc: "Install tomi-language-support into VS Code"
     deps: [package:language-support]
     cmds:
-      - code --install-extension tomi-language-support.vsix --force
+      - code --install-extension .artifacts/tomi-language-support.vsix --force
 
   install:file-icons:
     desc: "Install tomi-files-icons into VS Code"
     deps: [package:file-icons]
     cmds:
-      - code --install-extension tomi-files-icons.vsix --force
+      - code --install-extension .artifacts/tomi-files-icons.vsix --force
 
   # ─────────────────────────────────────────────────────────────────
   # Publish (marketplace)
@@ -154,5 +156,5 @@ tasks:
   clean:
     desc: "Remove build artifacts and packaged .vsix files"
     cmds:
-      - rm -rf {{.LANG_SUPPORT_DIR}}/out {{.LANG_SUPPORT_DIR}}/node_modules
-      - rm -f tomi-language-support.vsix tomi-files-icons.vsix
+      - rm -rf {{.LANG_SUPPORT_DIR}}/dist {{.LANG_SUPPORT_DIR}}/out {{.LANG_SUPPORT_DIR}}/node_modules
+      - rm -f .artifacts/*.vsix

@@ -82,4 +82,5 @@ jobs:
         with:
           name: vscode-extensions
           path: vscode-extensions/.artifacts/*.vsix
+          include-hidden-files: true
 
