@@ -1,0 +1,86 @@
+# Mathematical Sequences
+# Demonstrates: advanced loops, accumulators, number theory
+
+# Collatz conjecture: count steps to reach 1
+def collatz_steps(n: i32) -> i32:
+    let mut current = n
+    let mut steps = 0
+    while current != 1:
+        if current % 2 == 0:
+            current = current / 2
+        else:
+            current = 3 * current + 1
+        steps = steps + 1
+    return steps
+
+# Sum of first n triangular numbers
+def triangular_sum(n: i32) -> i32:
+    let mut total = 0
+    for i in 1..n:
+        # i-th triangular number = i*(i+1)/2
+        let tri = i * (i + 1) / 2
+        total = total + tri
+    return total
+
+# Check if perfect number (sum of divisors equals the number)
+def is_perfect(n: i32) -> bool:
+    if n < 2:
+        return false
+    let mut sum = 1
+    let mut i = 2
+    while i * i <= n:
+        if n % i == 0:
+            sum = sum + i
+            if i != n / i:
+                sum = sum + n / i
+        i = i + 1
+    return sum == n
+
+# Harshad number: divisible by the sum of its digits
+def is_harshad(n: i32) -> bool:
+    if n <= 0:
+        return false
+    let mut digit_sum = 0
+    let mut temp = n
+    while temp > 0:
+        digit_sum = digit_sum + temp % 10
+        temp = temp / 10
+    return n % digit_sum == 0
+
+# Count primes up to n (trial division)
+def count_primes(n: i32) -> i32:
+    let mut count = 0
+    for candidate in 2..n:
+        let mut is_prime = true
+        let mut d = 2
+        while d * d <= candidate:
+            if candidate % d == 0:
+                is_prime = false
+                break
+            d = d + 1
+        if is_prime:
+            count = count + 1
+    return count
+
+@entrypoint
+def main():
+    # Collatz sequence lengths
+    print(collatz_steps(27))
+    print(collatz_steps(1))
+    print(collatz_steps(6))
+
+    # Triangular number sum
+    print(triangular_sum(6))
+
+    # Perfect numbers
+    print(is_perfect(6))
+    print(is_perfect(28))
+    print(is_perfect(12))
+
+    # Harshad numbers
+    print(is_harshad(18))
+    print(is_harshad(19))
+    print(is_harshad(21))
+
+    # Count primes up to 50
+    print(count_primes(50))

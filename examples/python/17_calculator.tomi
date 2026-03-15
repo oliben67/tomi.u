@@ -1,0 +1,52 @@
+# Comprehensive Example: Building a Simple Calculator
+# Demonstrates: combining structs, enums, functions, and control flow
+
+enum Operation:
+    Add
+    Subtract
+    Multiply
+    Divide
+
+struct CalcResult:
+    value: i32
+    valid: bool
+
+def calculate(a: i32, b: i32, op_code: i32) -> CalcResult:
+    if op_code == 0:
+        return CalcResult { value: a + b, valid: true }
+    elif op_code == 1:
+        return CalcResult { value: a - b, valid: true }
+    elif op_code == 2:
+        return CalcResult { value: a * b, valid: true }
+    elif op_code == 3:
+        if b == 0:
+            return CalcResult { value: 0, valid: false }
+        else:
+            return CalcResult { value: a / b, valid: true }
+    else:
+        return CalcResult { value: 0, valid: false }
+
+def run_calculations():
+    # Addition
+    let r1 = calculate(10, 5, 0)
+    print(r1.value)
+
+    # Subtraction
+    let r2 = calculate(10, 5, 1)
+    print(r2.value)
+
+    # Multiplication
+    let r3 = calculate(10, 5, 2)
+    print(r3.value)
+
+    # Division
+    let r4 = calculate(10, 5, 3)
+    print(r4.value)
+
+    # Division by zero
+    let r5 = calculate(10, 0, 3)
+    print(r5.valid)
+
+@entrypoint
+def main():
+    run_calculations()

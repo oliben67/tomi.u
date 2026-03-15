@@ -1,0 +1,40 @@
+# Variables and Mutability
+# Demonstrates: let bindings, mut, type annotations, arithmetic
+
+def show_booleans():
+    # Boolean variables
+    let is_ready: bool = true
+    let is_done = false
+    print(is_ready)
+    print(is_done)
+
+@entrypoint
+def main():
+    # Immutable variables (default)
+    let x = 10
+    let y = 20
+    let sum = x + y
+    print(sum)
+
+    # Type-annotated variables
+    let width: i32 = 640
+    let height: i32 = 480
+    let area = width * height
+    print(area)
+
+    # Mutable variables
+    let mut counter = 0
+    counter = counter + 1
+    counter = counter + 1
+    counter = counter + 1
+    print(counter)
+
+    # Compound assignment operators
+    let mut score = 100
+    score += 50
+    score -= 20
+    score *= 2
+    print(score)
+
+    # Booleans printed from their own scope
+    show_booleans()

@@ -1,0 +1,58 @@
+# Multiple Traits and Polymorphism
+# Demonstrates: multiple trait implementations, duck typing in Python output
+
+trait Printable:
+    def to_string(self) -> String
+
+trait Comparable:
+    def compare_to(self, other_value: i32) -> i32
+
+struct Temperature:
+    degrees: i32
+    is_celsius: bool
+
+struct Distance:
+    meters: i32
+
+impl Printable for Temperature:
+    def to_string(self) -> String:
+        if self.is_celsius:
+            return "celsius"
+        return "fahrenheit"
+
+impl Printable for Distance:
+    def to_string(self) -> String:
+        return "distance"
+
+impl Comparable for Temperature:
+    def compare_to(self, other_value: i32) -> i32:
+        if self.degrees > other_value:
+            return 1
+        elif self.degrees < other_value:
+            return -1
+        else:
+            return 0
+
+def celsius_to_fahrenheit(c: i32) -> i32:
+    return c * 9 / 5 + 32
+
+def fahrenheit_to_celsius(f: i32) -> i32:
+    return (f - 32) * 5 / 9
+
+@entrypoint
+def main():
+    let boiling = Temperature { degrees: 100, is_celsius: true }
+    let freezing = Temperature { degrees: 32, is_celsius: false }
+
+    print(boiling.to_string())
+    print(freezing.to_string())
+
+    print(boiling.compare_to(50))
+    print(boiling.compare_to(100))
+    print(boiling.compare_to(200))
+
+    let d = Distance { meters: 1000 }
+    print(d.to_string())
+
+    print(celsius_to_fahrenheit(100))
+    print(fahrenheit_to_celsius(212))

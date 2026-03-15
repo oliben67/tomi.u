@@ -1,0 +1,47 @@
+# Functions
+# Demonstrates: parameters, return types, visibility, recursion
+
+def square(n: i32) -> i32:
+    return n * n
+
+def multiply(a: i32, b: i32) -> i32:
+    return a * b
+
+def max_of(a: i32, b: i32) -> i32:
+    if a > b:
+        return a
+    else:
+        return b
+
+pub def clamp(value: i32, min_val: i32, max_val: i32) -> i32:
+    if value < min_val:
+        return min_val
+    if value > max_val:
+        return max_val
+    return value
+
+def factorial(n: i32) -> i32:
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+def fibonacci(n: i32) -> i32:
+    if n <= 0:
+        return 0
+    if n == 1:
+        return 1
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+def is_even(n: i32) -> bool:
+    return n % 2 == 0
+
+@entrypoint
+def main():
+    print(square(7))
+    print(multiply(6, 9))
+    print(max_of(42, 17))
+    print(clamp(150, 0, 100))
+    print(factorial(10))
+    print(fibonacci(10))
+    print(is_even(42))
+    print(is_even(7))

@@ -1,0 +1,50 @@
+# Control Flow
+# Demonstrates: if/elif/else, while loops, loop, break, continue
+
+def classify(n: i32) -> i32:
+    if n > 0:
+        return 1
+    elif n < 0:
+        return -1
+    else:
+        return 0
+
+def fizzbuzz_value(i: i32) -> i32:
+    if i % 15 == 0:
+        return 0
+    elif i % 3 == 0:
+        return 3
+    elif i % 5 == 0:
+        return 5
+    else:
+        return i
+
+def count_down(start: i32):
+    let mut n = start
+    while n > 0:
+        print(n)
+        n = n - 1
+    print(0)
+
+def find_first_multiple(target: i32, max: i32) -> i32:
+    let mut i = 1
+    loop:
+        if i * target > max:
+            break
+        i = i + 1
+    return i - 1
+
+@entrypoint
+def main():
+    print(classify(42))
+    print(classify(0))
+    print(classify(-5))
+
+    # FizzBuzz check
+    for i in 1..16:
+        print(fizzbuzz_value(i))
+
+    count_down(5)
+
+    let multiples = find_first_multiple(7, 50)
+    print(multiples)

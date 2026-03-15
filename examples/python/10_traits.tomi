@@ -1,0 +1,51 @@
+# Traits and Implementations
+# Demonstrates: trait definitions, impl blocks, protocol-based dispatch
+
+trait Describable:
+    def describe(self) -> String
+
+trait HasArea:
+    def area(self) -> i32
+
+struct Circle:
+    radius: i32
+
+struct Square:
+    side: i32
+
+struct Triangle:
+    base: i32
+    height: i32
+
+impl Describable for Circle:
+    def describe(self) -> String:
+        return "circle"
+
+impl Describable for Square:
+    def describe(self) -> String:
+        return "square"
+
+impl Describable for Triangle:
+    def describe(self) -> String:
+        return "triangle"
+
+impl HasArea for Square:
+    def area(self) -> i32:
+        return self.side * self.side
+
+impl HasArea for Triangle:
+    def area(self) -> i32:
+        return self.base * self.height / 2
+
+@entrypoint
+def main():
+    let c = Circle { radius: 5 }
+    let s = Square { side: 4 }
+    let t = Triangle { base: 6, height: 3 }
+
+    print(c.describe())
+    print(s.describe())
+    print(t.describe())
+
+    print(s.area())
+    print(t.area())

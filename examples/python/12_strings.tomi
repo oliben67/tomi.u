@@ -1,0 +1,23 @@
+# Strings
+# Demonstrates: string variables, string parameters, string return values
+
+def greet(name: String) -> String:
+    return "Hello"
+
+def repeat_char(n: i32) -> String:
+    if n <= 0:
+        return ""
+    return "*"
+
+@entrypoint
+def main():
+    let name = "World"
+    let greeting = greet(name)
+    print(greeting)
+    print(name)
+
+    let stars = repeat_char(5)
+    print(stars)
+
+    # Direct string literals
+    print("tomi.u strings work in Python!")

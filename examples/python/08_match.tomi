@@ -1,0 +1,39 @@
+# Match Expressions
+# Demonstrates: pattern matching on values, wildcard patterns
+
+def grade_letter(score: i32) -> String:
+    if score >= 90:
+        return "A"
+    elif score >= 80:
+        return "B"
+    elif score >= 70:
+        return "C"
+    elif score >= 60:
+        return "D"
+    else:
+        return "F"
+
+@entrypoint
+def main():
+    # Match on integer values
+    let code = 2
+    match code:
+        0 => print("zero")
+        1 => print("one")
+        2 => print("two")
+        3 => print("three")
+        _ => print("other")
+
+    # Match in loop
+    let mut i = 0
+    while i < 5:
+        match i:
+            0 => print("start")
+            4 => print("end")
+            _ => print("middle")
+        i = i + 1
+
+    # Grade assignment
+    print(grade_letter(95))
+    print(grade_letter(72))
+    print(grade_letter(55))

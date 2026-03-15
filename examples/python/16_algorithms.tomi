@@ -1,0 +1,96 @@
+# Algorithms
+# Demonstrates: classic algorithms using tomi.u features
+
+# Greatest Common Divisor (Euclidean algorithm)
+def gcd(a: i32, b: i32) -> i32:
+    let mut x = a
+    let mut y = b
+    while y != 0:
+        let temp = y
+        y = x % y
+        x = temp
+    return x
+
+# Least Common Multiple
+def lcm(a: i32, b: i32) -> i32:
+    return a * b / gcd(a, b)
+
+# Power function (integer exponentiation)
+def power(base: i32, exp: i32) -> i32:
+    let mut result = 1
+    let mut i = 0
+    while i < exp:
+        result = result * base
+        i = i + 1
+    return result
+
+# Absolute value
+def abs(n: i32) -> i32:
+    if n < 0:
+        return 0 - n
+    return n
+
+# Integer square root (Newton's method)
+def isqrt(n: i32) -> i32:
+    if n < 0:
+        return 0
+    if n == 0:
+        return 0
+    let mut x = n
+    let mut y = (x + 1) / 2
+    while y < x:
+        x = y
+        y = (x + n / x) / 2
+    return x
+
+# Count digits in a number
+def digit_count(n: i32) -> i32:
+    let mut num = abs(n)
+    if num == 0:
+        return 1
+    let mut count = 0
+    while num > 0:
+        num = num / 10
+        count = count + 1
+    return count
+
+# Sum of digits
+def digit_sum(n: i32) -> i32:
+    let mut num = abs(n)
+    let mut total = 0
+    while num > 0:
+        total = total + num % 10
+        num = num / 10
+    return total
+
+# Check if palindrome number
+def is_palindrome(n: i32) -> bool:
+    let mut num = abs(n)
+    let mut reversed = 0
+    let original = num
+    while num > 0:
+        reversed = reversed * 10 + num % 10
+        num = num / 10
+    return reversed == original
+
+@entrypoint
+def main():
+    # GCD and LCM
+    print(gcd(48, 18))
+    print(lcm(12, 18))
+
+    # Power
+    print(power(2, 10))
+    print(power(3, 5))
+
+    # Square root
+    print(isqrt(144))
+    print(isqrt(200))
+
+    # Digit operations
+    print(digit_count(12345))
+    print(digit_sum(12345))
+
+    # Palindrome check
+    print(is_palindrome(12321))
+    print(is_palindrome(12345))
