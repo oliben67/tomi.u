@@ -82,7 +82,6 @@ jobs:
             echo "::notice::ARTIFACT_FILE=[$f]"
           done
           find vscode-extensions/ -name '*.vsix' -exec echo "::notice::VSIX_FOUND=[{}]" \;
-          # Also try non-hidden dir
           echo "::notice::PWD=[$(pwd)]"
 
       - name: Upload extension artifacts
@@ -91,4 +90,5 @@ jobs:
         with:
           name: vscode-extensions
           path: vscode-extensions/.artifacts/*.vsix
+          include-hidden-files: true
 
