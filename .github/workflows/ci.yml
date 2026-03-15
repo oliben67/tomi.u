@@ -1,12 +1,5 @@
-# This workflow runs on every push and pull request, and performs the following steps:
-# 1. Checks out the code
-# 2. Installs the Rust toolchain with rustfmt and clippy components
-# 3. Caches the Cargo registry and build artifacts to speed up subsequent runs
-# 4. Runs rustfmt to check code formatting
-# 5. Runs Clippy to check for code issues and warnings
-# 6. Compiles the code
-# 7. Runs tests
-# 8. Compiles the TypeScript VSCode extension
+# This workflow runs on every push and pull request, using Taskfile targets
+# to lint, compile, and test both the tomc compiler and the VS Code extension.
 
 name: CI
 
@@ -23,9 +16,6 @@ jobs:
   tomc:
     name: Lint, compile and test (tomc)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tomc
 
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +24,11 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt, clippy
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
 
       - name: Cache Cargo registry
         uses: actions/cache@v4
@@ -45,27 +40,26 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('tomc/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Lint – rustfmt
-        run: cargo +nightly fmt --check
-
-      - name: Lint – Clippy
-        run: cargo +nightly clippy --all-targets --all-features -- -D warnings
+      - name: Lint
+        run: task lint
 
       - name: Compile
-        run: cargo +nightly build --all-targets
+        run: task build:debug
 
       - name: Test
-        run: cargo +nightly test --all-targets
+        run: task test
 
   vscode-extension:
     name: Compile TypeScript VSCode extension
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: vscode-extensions/tomi-language-support
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -79,9 +73,6 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('vscode-extensions/tomi-language-support/package-lock.json') }}
           restore-keys: ${{ runner.os }}-npm-
 
-      - name: Install dependencies
-        run: npm ci
-
       - name: Compile
-        run: npm run compile
+        run: task build:vscode
 
