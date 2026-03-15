@@ -76,6 +76,13 @@ jobs:
       - name: Package (.vsix)
         run: task vscode:package
 
+      - name: Debug – list artifacts
+        run: |
+          echo "=== vscode-extensions/.artifacts/ ==="
+          ls -laR vscode-extensions/.artifacts/ 2>&1 || echo "(directory not found)"
+          echo "=== .vsix files anywhere under vscode-extensions/ ==="
+          find vscode-extensions/ -name '*.vsix' -ls 2>/dev/null || echo "(none found)"
+
       - name: Upload extension artifacts
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
