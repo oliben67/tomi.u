@@ -1,0 +1,25 @@
+# Control flow: if/elif/else and while loops
+
+def classify(n: i32) -> i32:
+    if n > 0:
+        return 1
+    elif n < 0:
+        return -1
+    else:
+        return 0
+
+@entrypoint
+def main():
+    let sign = classify(42)
+    let zero = classify(0)
+
+    let x = 10
+    if x > 5:
+        print("x is large")
+    else:
+        print("x is small")
+
+    let mut i = 0
+    while i < 5:
+        i = i + 1
+    print("control flow done")

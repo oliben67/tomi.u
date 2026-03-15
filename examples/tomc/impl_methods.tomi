@@ -1,0 +1,24 @@
+# Structs with impl blocks and methods
+
+struct Rectangle:
+    width: i32
+    height: i32
+
+impl Rectangle:
+    def area(self) -> i32:
+        return self.width * self.height
+
+    def is_square(self) -> bool:
+        return self.width == self.height
+
+    def scale(self, factor: i32) -> Rectangle:
+        return Rectangle { width: self.width * factor, height: self.height * factor }
+
+@entrypoint
+def main():
+    let rect = Rectangle { width: 10, height: 5 }
+    let a = rect.area()
+    let sq = rect.is_square()
+    let big = rect.scale(3)
+
+    print("impl methods done")
