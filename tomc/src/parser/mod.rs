@@ -20,9 +20,16 @@ impl TomiParser {
     /// Create a new parser from a token stream.
     pub fn new(tokens: Vec<Token>) -> Self {
         // Filter out comments and newlines at non-significant positions
-        let tokens: Vec<_> = tokens.into_iter().filter(|t| t.kind != TokenKind::Comment).collect();
+        let tokens: Vec<_> = tokens
+            .into_iter()
+            .filter(|t| t.kind != TokenKind::Comment)
+            .collect();
 
-        Self { tokens, position: 0, source: None }
+        Self {
+            tokens,
+            position: 0,
+            source: None,
+        }
     }
 
     /// Set the source code (for extracting literal values).
@@ -84,7 +91,12 @@ impl TomiParser {
         let end = self.previous_span();
 
         if errors.is_empty() {
-            Ok(Module { name, imports, items, span: start.merge(end) })
+            Ok(Module {
+                name,
+                imports,
+                items,
+                span: start.merge(end),
+            })
         } else {
             Err(errors)
         }
@@ -127,7 +139,12 @@ impl TomiParser {
         self.expect_newline_or_eof()?;
 
         let end = self.previous_span();
-        Ok(Import { path, alias, items: None, span: start.merge(end) })
+        Ok(Import {
+            path,
+            alias,
+            items: None,
+            span: start.merge(end),
+        })
     }
 
     fn parse_item(&mut self) -> Result<Item, CompileError> {
@@ -201,7 +218,11 @@ impl TomiParser {
             };
 
             let end = self.previous_span();
-            decorators.push(Decorator { name, args, span: start.merge(end) });
+            decorators.push(Decorator {
+                name,
+                args,
+                span: start.merge(end),
+            });
 
             self.skip_newlines();
         }
@@ -249,10 +270,18 @@ impl TomiParser {
             None
         };
 
-        self.expect(TokenKind::Colon)?;
-
-        // Parse body
-        let body = self.parse_block()?;
+        // Parse body — trait method declarations may omit the colon and body
+        let body = if self.check(TokenKind::Colon) {
+            self.advance();
+            self.parse_block()?
+        } else {
+            // Bodyless declaration (e.g. trait method signature)
+            self.expect_newline()?;
+            Block {
+                stmts: Vec::new(),
+                span: self.previous_span(),
+            }
+        };
 
         let end = self.previous_span();
 
@@ -309,7 +338,13 @@ impl TomiParser {
         };
 
         let end = self.previous_span();
-        Ok(Param { name, ty, is_mut, default, span: start.merge(end) })
+        Ok(Param {
+            name,
+            ty,
+            is_mut,
+            default,
+            span: start.merge(end),
+        })
     }
 
     fn parse_type_params(&mut self) -> Result<Vec<TypeParam>, CompileError> {
@@ -342,7 +377,11 @@ impl TomiParser {
         };
 
         let end = self.previous_span();
-        Ok(TypeParam { name, bounds, span: start.merge(end) })
+        Ok(TypeParam {
+            name,
+            bounds,
+            span: start.merge(end),
+        })
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -473,7 +512,11 @@ impl TomiParser {
                 self.expect_newline_or_dedent()?;
 
                 let var_end = self.previous_span();
-                variants.push(Variant { name: var_name, data, span: var_start.merge(var_end) });
+                variants.push(Variant {
+                    name: var_name,
+                    data,
+                    span: var_start.merge(var_end),
+                });
             }
         }
 
@@ -600,7 +643,13 @@ impl TomiParser {
         }
 
         let end = self.previous_span();
-        Ok(Impl { type_params, trait_path, target, items, span: start.merge(end) })
+        Ok(Impl {
+            type_params,
+            trait_path,
+            target,
+            items,
+            span: start.merge(end),
+        })
     }
 
     fn parse_type_alias(&mut self, visibility: Visibility) -> Result<TypeAlias, CompileError> {
@@ -615,7 +664,13 @@ impl TomiParser {
         self.expect_newline_or_eof()?;
 
         let end = self.previous_span();
-        Ok(TypeAlias { visibility, name, type_params, ty, span: start.merge(end) })
+        Ok(TypeAlias {
+            visibility,
+            name,
+            type_params,
+            ty,
+            span: start.merge(end),
+        })
     }
 
     fn parse_const(&mut self, visibility: Visibility) -> Result<Const, CompileError> {
@@ -637,7 +692,13 @@ impl TomiParser {
         self.expect_newline_or_eof()?;
 
         let end = self.previous_span();
-        Ok(Const { visibility, name, ty, value, span: start.merge(end) })
+        Ok(Const {
+            visibility,
+            name,
+            ty,
+            value,
+            span: start.merge(end),
+        })
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -654,7 +715,10 @@ impl TomiParser {
                 self.advance();
             }
             let inner = self.parse_type()?;
-            return Ok(Type::Reference { is_mut, inner: Box::new(inner) });
+            return Ok(Type::Reference {
+                is_mut,
+                inner: Box::new(inner),
+            });
         }
 
         // Check for optional types
@@ -690,7 +754,10 @@ impl TomiParser {
                 self.advance();
                 let size = self.parse_expression()?;
                 self.expect(TokenKind::RBracket)?;
-                return Ok(Type::Array { element: Box::new(element), size: Some(Box::new(size)) });
+                return Ok(Type::Array {
+                    element: Box::new(element),
+                    size: Some(Box::new(size)),
+                });
             }
 
             self.expect(TokenKind::RBracket)?;
@@ -705,7 +772,10 @@ impl TomiParser {
             self.expect(TokenKind::RParen)?;
             self.expect(TokenKind::Arrow)?;
             let return_type = self.parse_type()?;
-            return Ok(Type::Function { params, return_type: Box::new(return_type) });
+            return Ok(Type::Function {
+                params,
+                return_type: Box::new(return_type),
+            });
         }
 
         // Named type (possibly generic)
@@ -732,7 +802,10 @@ impl TomiParser {
         }
 
         let end = self.previous_span();
-        Ok(TypePath { segments, span: start.merge(end) })
+        Ok(TypePath {
+            segments,
+            span: start.merge(end),
+        })
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -760,7 +833,10 @@ impl TomiParser {
         }
 
         let end = self.previous_span();
-        Ok(Block { stmts, span: start.merge(end) })
+        Ok(Block {
+            stmts,
+            span: start.merge(end),
+        })
     }
 
     fn parse_statement(&mut self) -> Result<Stmt, CompileError> {
@@ -834,7 +910,13 @@ impl TomiParser {
         };
 
         let end = self.previous_span();
-        Ok(Stmt::Let { is_mut, pattern, ty, value, span: start.merge(end) })
+        Ok(Stmt::Let {
+            is_mut,
+            pattern,
+            ty,
+            value,
+            span: start.merge(end),
+        })
     }
 
     fn parse_return(&mut self) -> Result<Stmt, CompileError> {
@@ -851,7 +933,10 @@ impl TomiParser {
         };
 
         let end = self.previous_span();
-        Ok(Stmt::Return { value, span: start.merge(end) })
+        Ok(Stmt::Return {
+            value,
+            span: start.merge(end),
+        })
     }
 
     fn parse_break(&mut self) -> Result<Stmt, CompileError> {
@@ -860,7 +945,11 @@ impl TomiParser {
 
         // TODO: Parse label and value
         let end = self.previous_span();
-        Ok(Stmt::Break { label: None, value: None, span: start.merge(end) })
+        Ok(Stmt::Break {
+            label: None,
+            value: None,
+            span: start.merge(end),
+        })
     }
 
     fn parse_continue(&mut self) -> Result<Stmt, CompileError> {
@@ -868,7 +957,10 @@ impl TomiParser {
         self.expect(TokenKind::Continue)?;
 
         let end = self.previous_span();
-        Ok(Stmt::Continue { label: None, span: start.merge(end) })
+        Ok(Stmt::Continue {
+            label: None,
+            span: start.merge(end),
+        })
     }
 
     fn parse_for(&mut self) -> Result<Stmt, CompileError> {
@@ -882,7 +974,12 @@ impl TomiParser {
         let body = self.parse_block()?;
 
         let end = self.previous_span();
-        Ok(Stmt::For { pattern, iterable, body, span: start.merge(end) })
+        Ok(Stmt::For {
+            pattern,
+            iterable,
+            body,
+            span: start.merge(end),
+        })
     }
 
     fn parse_while(&mut self) -> Result<Stmt, CompileError> {
@@ -894,7 +991,11 @@ impl TomiParser {
         let body = self.parse_block()?;
 
         let end = self.previous_span();
-        Ok(Stmt::While { condition, body, span: start.merge(end) })
+        Ok(Stmt::While {
+            condition,
+            body,
+            span: start.merge(end),
+        })
     }
 
     fn parse_loop(&mut self) -> Result<Stmt, CompileError> {
@@ -905,7 +1006,11 @@ impl TomiParser {
         let body = self.parse_block()?;
 
         let end = self.previous_span();
-        Ok(Stmt::Loop { label: None, body, span: start.merge(end) })
+        Ok(Stmt::Loop {
+            label: None,
+            body,
+            span: start.merge(end),
+        })
     }
 
     /// Parse a try-catch/except statement
@@ -963,7 +1068,12 @@ impl TomiParser {
         };
 
         let end = self.previous_span();
-        Ok(Stmt::TryCatch { try_block, handlers, finally_block, span: start.merge(end) })
+        Ok(Stmt::TryCatch {
+            try_block,
+            handlers,
+            finally_block,
+            span: start.merge(end),
+        })
     }
 
     /// Parse a raise statement
@@ -974,7 +1084,10 @@ impl TomiParser {
         let exception = self.parse_expression()?;
 
         let end = self.previous_span();
-        Ok(Stmt::Raise { exception, span: start.merge(end) })
+        Ok(Stmt::Raise {
+            exception,
+            span: start.merge(end),
+        })
     }
 
     fn parse_assign_op(&mut self) -> Option<AssignOp> {
@@ -998,7 +1111,37 @@ impl TomiParser {
     // ═══════════════════════════════════════════════════════════════════════
 
     fn parse_expression(&mut self) -> Result<Expr, CompileError> {
-        self.parse_expr_with_precedence(0)
+        let expr = self.parse_expr_with_precedence(0)?;
+
+        // Handle range operators (lowest precedence, outside Pratt loop)
+        if self.check(TokenKind::DotDot) || self.check(TokenKind::DotDotEq) {
+            let inclusive = self.check(TokenKind::DotDotEq);
+            self.advance();
+            let start_span = expr.span();
+            // Parse the end of the range (if present)
+            let end = if !self.check(TokenKind::Colon)
+                && !self.check(TokenKind::Newline)
+                && !self.check(TokenKind::Eof)
+                && !self.check(TokenKind::RParen)
+                && !self.check(TokenKind::RBracket)
+                && !self.check(TokenKind::RBrace)
+                && !self.check(TokenKind::Comma)
+            {
+                Some(Box::new(self.parse_expr_with_precedence(0)?))
+            } else {
+                None
+            };
+            let end_span = end.as_ref().map(|e| e.span()).unwrap_or(start_span);
+            let span = start_span.merge(end_span);
+            return Ok(Expr::Range {
+                start: Some(Box::new(expr)),
+                end,
+                inclusive,
+                span,
+            });
+        }
+
+        Ok(expr)
     }
 
     fn parse_expr_with_precedence(&mut self, min_prec: u8) -> Result<Expr, CompileError> {
@@ -1015,7 +1158,12 @@ impl TomiParser {
             let right = self.parse_expr_with_precedence(right_prec)?;
 
             let span = left.span().merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+                span,
+            };
         }
 
         Ok(left)
@@ -1038,7 +1186,11 @@ impl TomiParser {
                 }
                 let inner = self.parse_unary()?;
                 let span = start.merge(inner.span());
-                return Ok(Expr::Reference { is_mut, inner: Box::new(inner), span });
+                return Ok(Expr::Reference {
+                    is_mut,
+                    inner: Box::new(inner),
+                    span,
+                });
             }
             _ => None,
         };
@@ -1047,7 +1199,11 @@ impl TomiParser {
             self.advance();
             let operand = self.parse_unary()?;
             let span = start.merge(operand.span());
-            return Ok(Expr::Unary { op, operand: Box::new(operand), span });
+            return Ok(Expr::Unary {
+                op,
+                operand: Box::new(operand),
+                span,
+            });
         }
 
         self.parse_postfix()
@@ -1081,7 +1237,11 @@ impl TomiParser {
                     } else {
                         // Field access
                         let span = expr.span().merge(field.span);
-                        expr = Expr::FieldAccess { object: Box::new(expr), field, span };
+                        expr = Expr::FieldAccess {
+                            object: Box::new(expr),
+                            field,
+                            span,
+                        };
                     }
                 }
 
@@ -1092,7 +1252,11 @@ impl TomiParser {
                     self.expect(TokenKind::RBracket)?;
 
                     let span = expr.span().merge(self.previous_span());
-                    expr = Expr::Index { object: Box::new(expr), index: Box::new(index), span };
+                    expr = Expr::Index {
+                        object: Box::new(expr),
+                        index: Box::new(index),
+                        span,
+                    };
                 }
 
                 // Function call
@@ -1103,14 +1267,22 @@ impl TomiParser {
                     self.expect(TokenKind::RParen)?;
 
                     let span = expr.span().merge(self.previous_span());
-                    expr = Expr::Call { callee: Box::new(expr), type_args: Vec::new(), args, span };
+                    expr = Expr::Call {
+                        callee: Box::new(expr),
+                        type_args: Vec::new(),
+                        args,
+                        span,
+                    };
                 }
 
                 // Try operator
                 TokenKind::Question => {
                     self.advance();
                     let span = expr.span().merge(self.previous_span());
-                    expr = Expr::Try { inner: Box::new(expr), span };
+                    expr = Expr::Try {
+                        inner: Box::new(expr),
+                        span,
+                    };
                 }
 
                 // Await
@@ -1135,7 +1307,11 @@ impl TomiParser {
                 let text = self.current_text();
                 let value = self.parse_int_literal(&text)?;
                 self.advance();
-                Ok(Expr::IntLiteral { value, suffix: None, span: start })
+                Ok(Expr::IntLiteral {
+                    value,
+                    suffix: None,
+                    span: start,
+                })
             }
 
             TokenKind::FloatLiteral => {
@@ -1145,7 +1321,11 @@ impl TomiParser {
                     .parse()
                     .map_err(|_| CompileError::InvalidNumber { span: start })?;
                 self.advance();
-                Ok(Expr::FloatLiteral { value, suffix: None, span: start })
+                Ok(Expr::FloatLiteral {
+                    value,
+                    suffix: None,
+                    span: start,
+                })
             }
 
             TokenKind::String => {
@@ -1166,18 +1346,80 @@ impl TomiParser {
 
             TokenKind::True => {
                 self.advance();
-                Ok(Expr::BoolLiteral { value: true, span: start })
+                Ok(Expr::BoolLiteral {
+                    value: true,
+                    span: start,
+                })
             }
 
             TokenKind::False => {
                 self.advance();
-                Ok(Expr::BoolLiteral { value: false, span: start })
+                Ok(Expr::BoolLiteral {
+                    value: false,
+                    span: start,
+                })
             }
 
             // Identifiers and paths
             TokenKind::Identifier | TokenKind::SelfValue | TokenKind::SelfType => {
                 let name = self.current_text().to_string();
                 self.advance();
+
+                // Check for path syntax: Name::Variant or Name::Variant(args)
+                if self.check(TokenKind::ColonColon) {
+                    let mut segments = vec![Spanned::new(name, start)];
+                    while self.check(TokenKind::ColonColon) {
+                        self.advance(); // consume '::'
+                        let seg = self.parse_identifier()?;
+                        segments.push(seg);
+                    }
+                    let end_span = segments.last().map(|s| s.span).unwrap_or(start);
+                    let span = start.merge(end_span);
+
+                    // Check for constructor call: Path::Variant(args)
+                    if self.check(TokenKind::LParen) {
+                        self.advance();
+                        let args = self
+                            .parse_comma_separated(TokenKind::RParen, |p| p.parse_expression())?;
+                        self.expect(TokenKind::RParen)?;
+                        let call_span = start.merge(self.previous_span());
+                        return Ok(Expr::Call {
+                            callee: Box::new(Expr::Path { segments, span }),
+                            type_args: Vec::new(),
+                            args,
+                            span: call_span,
+                        });
+                    }
+
+                    // Check for struct init: Path::Variant { field: value }
+                    if self.check(TokenKind::LBrace) {
+                        self.advance();
+                        let fields = self.parse_comma_separated(TokenKind::RBrace, |p| {
+                            let field_start = p.current_span();
+                            let field_name = p.parse_identifier()?;
+                            p.expect(TokenKind::Colon)?;
+                            let value = p.parse_expression()?;
+                            let field_span = field_start.merge(p.previous_span());
+                            Ok(FieldInit {
+                                name: field_name,
+                                value: Some(value),
+                                span: field_span,
+                            })
+                        })?;
+                        self.expect(TokenKind::RBrace)?;
+                        let init_span = start.merge(self.previous_span());
+                        return Ok(Expr::StructInit {
+                            path: TypePath {
+                                segments: segments.clone(),
+                                span,
+                            },
+                            fields,
+                            span: init_span,
+                        });
+                    }
+
+                    return Ok(Expr::Path { segments, span });
+                }
 
                 // Check for struct init: Name { field: value }
                 if self.check(TokenKind::LBrace) {
@@ -1188,12 +1430,19 @@ impl TomiParser {
                         p.expect(TokenKind::Colon)?;
                         let value = p.parse_expression()?;
                         let field_span = field_start.merge(p.previous_span());
-                        Ok(FieldInit { name: field_name, value: Some(value), span: field_span })
+                        Ok(FieldInit {
+                            name: field_name,
+                            value: Some(value),
+                            span: field_span,
+                        })
                     })?;
                     self.expect(TokenKind::RBrace)?;
                     let span = start.merge(self.previous_span());
                     Ok(Expr::StructInit {
-                        path: TypePath { segments: vec![Spanned::new(name, start)], span: start },
+                        path: TypePath {
+                            segments: vec![Spanned::new(name, start)],
+                            span: start,
+                        },
                         fields,
                         span,
                     })
@@ -1283,7 +1532,10 @@ impl TomiParser {
                 self.advance();
                 let inner = self.parse_expression()?;
                 let span = start.merge(inner.span());
-                Ok(Expr::Await { inner: Box::new(inner), span })
+                Ok(Expr::Await {
+                    inner: Box::new(inner),
+                    span,
+                })
             }
 
             _ => Err(CompileError::ExpectedExpression { span: start }),
@@ -1359,7 +1611,12 @@ impl TomiParser {
             let body = self.parse_expression()?;
 
             let arm_end = self.previous_span();
-            arms.push(MatchArm { pattern, guard, body, span: arm_start.merge(arm_end) });
+            arms.push(MatchArm {
+                pattern,
+                guard,
+                body,
+                span: arm_start.merge(arm_end),
+            });
 
             self.skip_newlines();
         }
@@ -1369,7 +1626,11 @@ impl TomiParser {
         }
 
         let end = self.previous_span();
-        Ok(Expr::Match { scrutinee: Box::new(scrutinee), arms, span: start.merge(end) })
+        Ok(Expr::Match {
+            scrutinee: Box::new(scrutinee),
+            arms,
+            span: start.merge(end),
+        })
     }
 
     fn parse_lambda(&mut self) -> Result<Expr, CompileError> {
@@ -1400,7 +1661,12 @@ impl TomiParser {
         let body = self.parse_expression()?;
 
         let span = start.merge(body.span());
-        Ok(Expr::Lambda { params, return_type, body: Box::new(body), span })
+        Ok(Expr::Lambda {
+            params,
+            return_type,
+            body: Box::new(body),
+            span,
+        })
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -1464,7 +1730,10 @@ impl TomiParser {
                     let span = start.merge(self.previous_span());
 
                     return Ok(Pattern::Struct {
-                        path: TypePath { segments: vec![name], span },
+                        path: TypePath {
+                            segments: vec![name],
+                            span,
+                        },
                         fields,
                         rest,
                         span,
@@ -1479,14 +1748,21 @@ impl TomiParser {
 
                     let span = start.merge(self.previous_span());
                     return Ok(Pattern::Variant {
-                        path: TypePath { segments: vec![name], span },
+                        path: TypePath {
+                            segments: vec![name],
+                            span,
+                        },
                         data: Some(Box::new(inner)),
                         span,
                     });
                 }
 
                 // Simple identifier binding
-                Ok(Pattern::Identifier { is_mut, name, span: start.merge(self.previous_span()) })
+                Ok(Pattern::Identifier {
+                    is_mut,
+                    name,
+                    span: start.merge(self.previous_span()),
+                })
             }
 
             TokenKind::LParen => {
@@ -1496,12 +1772,18 @@ impl TomiParser {
                 self.expect(TokenKind::RParen)?;
 
                 let span = start.merge(self.previous_span());
-                Ok(Pattern::Tuple { elements: patterns, span })
+                Ok(Pattern::Tuple {
+                    elements: patterns,
+                    span,
+                })
             }
 
             TokenKind::IntLiteral | TokenKind::String | TokenKind::True | TokenKind::False => {
                 let value = self.parse_primary()?;
-                Ok(Pattern::Literal { value, span: start.merge(self.previous_span()) })
+                Ok(Pattern::Literal {
+                    value,
+                    span: start.merge(self.previous_span()),
+                })
             }
 
             _ => Err(CompileError::ExpectedToken {
@@ -1553,10 +1835,13 @@ impl TomiParser {
         };
 
         // Strip type suffix
-        let text = text.trim_end_matches(|c: char| c.is_alphabetic()).to_string();
+        let text = text
+            .trim_end_matches(|c: char| c.is_alphabetic())
+            .to_string();
 
-        i128::from_str_radix(&text, radix)
-            .map_err(|_| CompileError::InvalidNumber { span: self.current_span() })
+        i128::from_str_radix(&text, radix).map_err(|_| CompileError::InvalidNumber {
+            span: self.current_span(),
+        })
     }
 
     fn parse_identifier(&mut self) -> Result<Spanned<String>, CompileError> {
@@ -1597,16 +1882,25 @@ impl TomiParser {
     }
 
     fn current_kind(&self) -> TokenKind {
-        self.tokens.get(self.position).map(|t| t.kind).unwrap_or(TokenKind::Eof)
+        self.tokens
+            .get(self.position)
+            .map(|t| t.kind)
+            .unwrap_or(TokenKind::Eof)
     }
 
     fn current_span(&self) -> Span {
-        self.tokens.get(self.position).map(|t| t.span).unwrap_or(Span::DUMMY)
+        self.tokens
+            .get(self.position)
+            .map(|t| t.span)
+            .unwrap_or(Span::DUMMY)
     }
 
     fn previous_span(&self) -> Span {
         if self.position > 0 {
-            self.tokens.get(self.position - 1).map(|t| t.span).unwrap_or(Span::DUMMY)
+            self.tokens
+                .get(self.position - 1)
+                .map(|t| t.span)
+                .unwrap_or(Span::DUMMY)
         } else {
             Span::DUMMY
         }
