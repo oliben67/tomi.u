@@ -1,0 +1,36 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark Theme Stylized Stork Icon for Tomi Language -->
+  <defs>
+    <linearGradient id="bodyGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6BB6FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4A90E2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="beakGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB84D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F39C12;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Stork Body -->
+  <ellipse cx="8" cy="9" rx="3" ry="4.5" fill="url(#bodyGradientDark)"/>
+  
+  <!-- Stork Neck -->
+  <path d="M8 5 Q9 3 11 2.5" stroke="url(#bodyGradientDark)" stroke-width="1.5" fill="none"/>
+  
+  <!-- Stork Head -->
+  <circle cx="11.5" cy="2.5" r="1.2" fill="url(#bodyGradientDark)"/>
+  
+  <!-- Stork Beak -->
+  <path d="M12.5 2.5 L15 2.2 L15 2.8 Z" fill="url(#beakGradientDark)"/>
+  
+  <!-- Stork Legs -->
+  <line x1="7" y1="13" x2="6.5" y2="15" stroke="#E8E8E8" stroke-width="1"/>
+  <line x1="9" y1="13" x2="9.5" y2="15" stroke="#E8E8E8" stroke-width="1"/>
+  
+  <!-- Wing Detail -->
+  <path d="M6 8 Q4 9 5 11" stroke="#5BA0F2" stroke-width="1" fill="none"/>
+  
+  <!-- Eye -->
+  <circle cx="11.5" cy="2.2" r="0.3" fill="white"/>
+  <circle cx="11.6" cy="2.2" r="0.15" fill="black"/>
+</svg>
