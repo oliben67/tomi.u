@@ -30,10 +30,7 @@ fn ensure_built() {
             .current_dir(env!("CARGO_MANIFEST_DIR"))
             .status()
             .expect("failed to invoke `cargo build --bin tomc`");
-        assert!(
-            status.success(),
-            "tomc failed to compile – end2end tests cannot run"
-        );
+        assert!(status.success(), "tomc failed to compile – end2end tests cannot run");
     });
 }
 
@@ -118,10 +115,7 @@ fn test_help_long() {
     let out = tomc().arg("--help").output().unwrap();
     assert_success(&out, "--help");
     let s = stdout(&out);
-    assert!(
-        s.contains("Usage") || s.contains("usage"),
-        "--help should contain usage info"
-    );
+    assert!(s.contains("Usage") || s.contains("usage"), "--help should contain usage info");
     assert!(s.contains("tomc"), "--help should mention the binary name");
 }
 
@@ -129,10 +123,7 @@ fn test_help_long() {
 fn test_help_short() {
     let out = tomc().arg("-h").output().unwrap();
     assert_success(&out, "-h");
-    assert!(
-        stdout(&out).contains("tomc"),
-        "-h output should mention the binary name"
-    );
+    assert!(stdout(&out).contains("tomc"), "-h output should mention the binary name");
 }
 
 // ---------------------------------------------------------------------------
@@ -171,20 +162,14 @@ fn test_explain_known_code_e0001() {
     let out = tomc().args(["--explain", "E0001"]).output().unwrap();
     assert_success(&out, "--explain E0001");
     let s = stdout(&out);
-    assert!(
-        s.contains("E0001"),
-        "explain output should mention the error code"
-    );
+    assert!(s.contains("E0001"), "explain output should mention the error code");
 }
 
 #[test]
 fn test_explain_known_code_e0010() {
     let out = tomc().args(["--explain", "E0010"]).output().unwrap();
     assert_success(&out, "--explain E0010");
-    assert!(
-        stdout(&out).contains("E0010"),
-        "explain output should mention E0010"
-    );
+    assert!(stdout(&out).contains("E0010"), "explain output should mention E0010");
 }
 
 #[test]
@@ -224,10 +209,7 @@ fn test_explain_lowercase_code_accepted() {
 
 #[test]
 fn test_check_flag_valid_source() {
-    let out = tomc()
-        .args(["--check", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = tomc().args(["--check", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--check");
     let s = stdout(&out);
     assert!(
@@ -241,12 +223,7 @@ fn test_check_does_not_produce_output_file() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("should_not_exist.rs");
     let out = tomc()
-        .args([
-            "--check",
-            "-o",
-            out_path.to_str().unwrap(),
-            hello_tomi().to_str().unwrap(),
-        ])
+        .args(["--check", "-o", out_path.to_str().unwrap(), hello_tomi().to_str().unwrap()])
         .output()
         .unwrap();
     assert_success(&out, "--check with -o");
@@ -259,10 +236,7 @@ fn test_check_does_not_produce_output_file() {
 
 #[test]
 fn test_emit_tokens() {
-    let out = tomc()
-        .args(["--emit", "tokens", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = tomc().args(["--emit", "tokens", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--emit tokens");
     let s = stdout(&out);
     assert!(
@@ -277,10 +251,7 @@ fn test_emit_tokens() {
 
 #[test]
 fn test_emit_ast() {
-    let out = tomc()
-        .args(["--emit", "ast", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = tomc().args(["--emit", "ast", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--emit ast");
     let s = stdout(&out);
     assert!(
@@ -298,22 +269,13 @@ fn test_emit_code_produces_rs_file() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("hello.rs");
     let out = tomc()
-        .args([
-            "--emit",
-            "code",
-            "-o",
-            out_path.to_str().unwrap(),
-            hello_tomi().to_str().unwrap(),
-        ])
+        .args(["--emit", "code", "-o", out_path.to_str().unwrap(), hello_tomi().to_str().unwrap()])
         .output()
         .unwrap();
     assert_success(&out, "--emit code");
     assert!(out_path.exists(), "--emit code should write a .rs file");
     let rs = std::fs::read_to_string(&out_path).unwrap();
-    assert!(
-        rs.contains("fn main"),
-        "generated Rust should contain fn main"
-    );
+    assert!(rs.contains("fn main"), "generated Rust should contain fn main");
 }
 
 // ---------------------------------------------------------------------------
@@ -322,10 +284,7 @@ fn test_emit_code_produces_rs_file() {
 
 #[test]
 fn test_emit_metadata() {
-    let out = tomc()
-        .args(["--emit", "metadata", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = tomc().args(["--emit", "metadata", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--emit metadata");
     // metadata emit should produce some output (no crash is the minimum guarantee)
 }
@@ -339,13 +298,7 @@ fn test_emit_bin_produces_executable() {
     let tmp = tempfile::tempdir().unwrap();
     let bin_path = tmp.path().join("hello_end2end");
     let out = tomc()
-        .args([
-            "--emit",
-            "bin",
-            "-o",
-            bin_path.to_str().unwrap(),
-            hello_tomi().to_str().unwrap(),
-        ])
+        .args(["--emit", "bin", "-o", bin_path.to_str().unwrap(), hello_tomi().to_str().unwrap()])
         .output()
         .unwrap();
     assert_success(&out, "--emit bin");
@@ -370,13 +323,7 @@ fn test_output_flag_short() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("custom_output.rs");
     let out = tomc()
-        .args([
-            "-o",
-            out_path.to_str().unwrap(),
-            "--emit",
-            "code",
-            hello_tomi().to_str().unwrap(),
-        ])
+        .args(["-o", out_path.to_str().unwrap(), "--emit", "code", hello_tomi().to_str().unwrap()])
         .output()
         .unwrap();
     assert_success(&out, "-o (short)");
@@ -398,10 +345,7 @@ fn test_output_flag_long() {
         .output()
         .unwrap();
     assert_success(&out, "--output (long)");
-    assert!(
-        out_path.exists(),
-        "--output should write to the specified path"
-    );
+    assert!(out_path.exists(), "--output should write to the specified path");
 }
 
 // ---------------------------------------------------------------------------
@@ -448,10 +392,7 @@ fn test_album_type_lib() {
         .output()
         .unwrap();
     assert_success(&out, "--album-type lib");
-    assert!(
-        out_path.exists(),
-        "--album-type lib should produce .rs output"
-    );
+    assert!(out_path.exists(), "--album-type lib should produce .rs output");
 }
 
 #[test]
@@ -471,10 +412,7 @@ fn test_album_type_bin() {
         .output()
         .unwrap();
     assert_success(&out, "--album-type bin");
-    assert!(
-        out_path.exists(),
-        "--album-type bin with --emit code should produce .rs output"
-    );
+    assert!(out_path.exists(), "--album-type bin with --emit code should produce .rs output");
 }
 
 // ---------------------------------------------------------------------------
@@ -522,13 +460,7 @@ fn test_codegen_opt_level_3() {
 #[test]
 fn test_codegen_opt_level_invalid_exits_nonzero() {
     let out = tomc()
-        .args([
-            "-C",
-            "opt-level=5",
-            "--emit",
-            "code",
-            hello_tomi().to_str().unwrap(),
-        ])
+        .args(["-C", "opt-level=5", "--emit", "code", hello_tomi().to_str().unwrap()])
         .output()
         .unwrap();
     assert_failure(&out, "-C opt-level=5 (invalid)");
@@ -651,13 +583,7 @@ fn test_codegen_lto_no() {
 #[test]
 fn test_codegen_unknown_opt_exits_nonzero() {
     let out = tomc()
-        .args([
-            "-C",
-            "unknown-option=42",
-            "--emit",
-            "code",
-            hello_tomi().to_str().unwrap(),
-        ])
+        .args(["-C", "unknown-option=42", "--emit", "code", hello_tomi().to_str().unwrap()])
         .output()
         .unwrap();
     assert_failure(&out, "-C unknown-option (invalid)");
@@ -769,13 +695,7 @@ fn test_all_known_lints_with_warn() {
     for lint in &known {
         cmd.args(["-W", lint]);
     }
-    cmd.args([
-        "--emit",
-        "code",
-        "-o",
-        rs.to_str().unwrap(),
-        hello_tomi().to_str().unwrap(),
-    ]);
+    cmd.args(["--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()]);
     let out = cmd.output().unwrap();
     assert_success(&out, "-W all known lints");
 }
@@ -815,14 +735,7 @@ fn test_verbose_short() {
     let tmp = tempfile::tempdir().unwrap();
     let rs = tmp.path().join("verbose_out.rs");
     let out = tomc()
-        .args([
-            "-v",
-            "--emit",
-            "code",
-            "-o",
-            rs.to_str().unwrap(),
-            hello_tomi().to_str().unwrap(),
-        ])
+        .args(["-v", "--emit", "code", "-o", rs.to_str().unwrap(), hello_tomi().to_str().unwrap()])
         .output()
         .unwrap();
     assert_success(&out, "-v");
@@ -958,10 +871,7 @@ fn test_target_rust_long() {
         .output()
         .unwrap();
     assert_success(&out, "--target rust");
-    assert!(
-        rs.exists(),
-        "--target rust --emit code should produce a .rs file"
-    );
+    assert!(rs.exists(), "--target rust --emit code should produce a .rs file");
 }
 
 // ---------------------------------------------------------------------------
@@ -970,10 +880,8 @@ fn test_target_rust_long() {
 
 #[test]
 fn test_combined_verbose_check() {
-    let out = tomc()
-        .args(["--verbose", "--check", hello_tomi().to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out =
+        tomc().args(["--verbose", "--check", hello_tomi().to_str().unwrap()]).output().unwrap();
     assert_success(&out, "--verbose --check");
     let combined = format!("{}{}", stdout(&out), stderr(&out));
     assert!(
@@ -1054,10 +962,7 @@ fn test_target_python_short() {
         .output()
         .unwrap();
     assert_success(&out, "-t python");
-    assert!(
-        py.exists(),
-        "-t python --emit code should produce a .py file"
-    );
+    assert!(py.exists(), "-t python --emit code should produce a .py file");
 }
 
 #[test]
@@ -1077,10 +982,7 @@ fn test_target_python_long() {
         .output()
         .unwrap();
     assert_success(&out, "--target python");
-    assert!(
-        py.exists(),
-        "--target python --emit code should produce a .py file"
-    );
+    assert!(py.exists(), "--target python --emit code should produce a .py file");
 }
 
 #[test]
