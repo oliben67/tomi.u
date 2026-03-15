@@ -28,6 +28,17 @@ tasks:
   build:language-support:
     desc: "Compile the tomi-language-support extension"
     dir: "{{.LANG_SUPPORT_DIR}}"
+    sources:
+      - src/**/*.ts
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - syntaxes/**/*.json
+      - snippets/**/*.json
+      - language-configuration.json
+    generates:
+      - out/**/*.js
+    method: checksum
     cmds:
       - npm ci
       - npm run compile
@@ -35,6 +46,12 @@ tasks:
   build:file-icons:
     desc: "Prepare the tomi-files-icons extension"
     dir: "{{.FILE_ICONS_DIR}}"
+    sources:
+      - package.json
+      - theme/**/*.json
+      - icons/**/*
+      - language-configuration.json
+    method: checksum
     cmds:
       - echo "tomi-files-icons is a static theme — no build step needed"
 
@@ -52,12 +69,33 @@ tasks:
     desc: "Package tomi-language-support as a .vsix"
     dir: "{{.LANG_SUPPORT_DIR}}"
     deps: [build:language-support]
+    sources:
+      - out/**/*.js
+      - package.json
+      - syntaxes/**/*.json
+      - snippets/**/*.json
+      - language-configuration.json
+      - README.md
+      - CHANGELOG.md
+      - images/**/*
+    generates:
+      - ../tomi-language-support.vsix
+    method: checksum
     cmds:
       - npx @vscode/vsce package --out ../tomi-language-support.vsix
 
   package:file-icons:
     desc: "Package tomi-files-icons as a .vsix"
     dir: "{{.FILE_ICONS_DIR}}"
+    sources:
+      - package.json
+      - theme/**/*.json
+      - icons/**/*
+      - language-configuration.json
+      - README.md
+    generates:
+      - ../tomi-files-icons.vsix
+    method: checksum
     cmds:
       - npx @vscode/vsce package --out ../tomi-files-icons.vsix
 

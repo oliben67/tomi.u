@@ -11,15 +11,11 @@ use tomc::parser::TomiParser;
 fn compile(source: &str) -> Result<String, String> {
     // Lexer
     let mut lexer = Lexer::new(source);
-    let tokens = lexer
-        .tokenize()
-        .map_err(|e| format!("Lexer error: {:?}", e))?;
+    let tokens = lexer.tokenize().map_err(|e| format!("Lexer error: {:?}", e))?;
 
     // Parser
     let mut parser = TomiParser::new(tokens).with_source(source.to_string());
-    let module = parser
-        .parse()
-        .map_err(|e| format!("Parser errors: {:?}", e))?;
+    let module = parser.parse().map_err(|e| format!("Parser errors: {:?}", e))?;
 
     // Codegen
     let config = CodegenConfig {
@@ -27,9 +23,7 @@ fn compile(source: &str) -> Result<String, String> {
         ..CodegenConfig::default()
     };
     let generator = CodeGenerator::with_config(Backend::Rust, config);
-    generator
-        .generate(&module)
-        .map_err(|e| format!("Codegen error: {:?}", e))
+    generator.generate(&module).map_err(|e| format!("Codegen error: {:?}", e))
 }
 
 /// Test that generated Rust code compiles with rustc
@@ -386,10 +380,7 @@ fn test_compile_hello_tomi() {
 
     // --- structural checks ---
     // Must contain a main function
-    assert!(
-        rust.contains("fn main()"),
-        "output should have fn main(), got:\n{rust}"
-    );
+    assert!(rust.contains("fn main()"), "output should have fn main(), got:\n{rust}");
 
     // Must declare the message variable with the correct string
     assert!(
@@ -398,16 +389,10 @@ fn test_compile_hello_tomi() {
     );
 
     // Must include a call to print with 'message'
-    assert!(
-        rust.contains("print(message)"),
-        "output should call print(message), got:\n{rust}"
-    );
+    assert!(rust.contains("print(message)"), "output should call print(message), got:\n{rust}");
 
     // Must NOT be empty (sanity)
-    assert!(
-        !rust.trim().is_empty(),
-        "generated output should not be empty"
-    );
+    assert!(!rust.trim().is_empty(), "generated output should not be empty");
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -417,23 +402,14 @@ fn test_compile_hello_tomi() {
 /// Full compilation pipeline targeting Python
 fn compile_python(source: &str) -> Result<String, String> {
     let mut lexer = Lexer::new(source);
-    let tokens = lexer
-        .tokenize()
-        .map_err(|e| format!("Lexer error: {:?}", e))?;
+    let tokens = lexer.tokenize().map_err(|e| format!("Lexer error: {:?}", e))?;
 
     let mut parser = TomiParser::new(tokens).with_source(source.to_string());
-    let module = parser
-        .parse()
-        .map_err(|e| format!("Parser errors: {:?}", e))?;
+    let module = parser.parse().map_err(|e| format!("Parser errors: {:?}", e))?;
 
-    let config = CodegenConfig {
-        include_comments: false,
-        ..CodegenConfig::default()
-    };
+    let config = CodegenConfig { include_comments: false, ..CodegenConfig::default() };
     let generator = CodeGenerator::with_config(Backend::Python, config);
-    generator
-        .generate(&module)
-        .map_err(|e| format!("Codegen error: {:?}", e))
+    generator.generate(&module).map_err(|e| format!("Codegen error: {:?}", e))
 }
 
 /// Verify generated Python is syntactically valid using python3 -c
@@ -590,16 +566,10 @@ fn test_python_compile_hello_tomi() {
     let py = compile_python(&source)
         .unwrap_or_else(|e| panic!("hello.tomi Python compilation failed: {e}"));
 
-    assert!(
-        py.contains("def main()"),
-        "Python output should have def main(), got:\n{py}"
-    );
+    assert!(py.contains("def main()"), "Python output should have def main(), got:\n{py}");
     assert!(
         py.contains("\"Hello, World!\""),
         "Python output should contain Hello, World!, got:\n{py}"
     );
-    assert!(
-        py.contains("if __name__"),
-        "Python output should have __name__ guard, got:\n{py}"
-    );
+    assert!(py.contains("if __name__"), "Python output should have __name__ guard, got:\n{py}");
 }

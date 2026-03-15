@@ -5,6 +5,10 @@ vars:
   TOOLCHAIN: "+nightly"
   IMAGE_NAME: "tomi-u/tomc"
   IMAGE_TAG: "latest"
+  # Shared source globs
+  RUST_SOURCES: "src/**/*.rs"
+  RUST_TESTS: "tests/**/*.rs"
+  CARGO_MANIFEST: "Cargo.toml"
 
 tasks:
   # ─────────────────────────────────────────────────────────────────
@@ -24,11 +28,25 @@ tasks:
 
   build:
     desc: "Compile tomc (release)"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - "{{.CARGO_MANIFEST}}"
+      - Cargo.lock
+    generates:
+      - target/release/tomc
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} build --all-targets --release
 
   build:debug:
     desc: "Compile tomc (debug)"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - "{{.CARGO_MANIFEST}}"
+      - Cargo.lock
+    generates:
+      - target/debug/tomc
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} build --all-targets
 
@@ -44,11 +62,21 @@ tasks:
 
   lint:fmt:
     desc: "Check code formatting with rustfmt"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - "{{.RUST_TESTS}}"
+      - rustfmt.toml
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} fmt --check
 
   lint:clippy:
     desc: "Run Clippy with warnings as errors"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - "{{.RUST_TESTS}}"
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} clippy --all-targets --all-features -- -D warnings
 
@@ -64,42 +92,85 @@ tasks:
 
   test:
     desc: "Run all tests"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - "{{.RUST_TESTS}}"
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --all-targets
 
   test:lib:
     desc: "Run library unit tests only"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --lib
 
   test:integration:
     desc: "Run integration tests only"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - tests/integration_tests.rs
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --test integration_tests
 
   test:e2e:
     desc: "Run end-to-end tests only"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - tests/end2end/**/*.rs
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --test end2end
 
   test:codegen:
     desc: "Run codegen tests (Rust + Python)"
+    sources:
+      - "{{.RUST_SOURCES}}"
+      - tests/codegen_tests.rs
+      - tests/python_codegen_tests.rs
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --test codegen_tests
       - cargo {{.TOOLCHAIN}} test --test python_codegen_tests
 
   test:lexer:
     desc: "Run lexer tests only"
+    sources:
+      - src/lexer/**/*.rs
+      - tests/lexer_tests.rs
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --test lexer_tests
 
   test:parser:
     desc: "Run parser tests only"
+    sources:
+      - src/parser/**/*.rs
+      - src/lexer/**/*.rs
+      - src/ast/**/*.rs
+      - tests/parser_tests.rs
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --test parser_tests
 
   test:types:
     desc: "Run type system tests only"
+    sources:
+      - src/types/**/*.rs
+      - src/checker/**/*.rs
+      - tests/type_tests.rs
+      - "{{.CARGO_MANIFEST}}"
+    method: checksum
     cmds:
       - cargo {{.TOOLCHAIN}} test --test type_tests
 
