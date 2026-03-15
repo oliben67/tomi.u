@@ -9,14 +9,12 @@ on:
   pull_request:
     branches: ["**"]
 
-permissions:
-  contents: read
-  actions: write
-
 jobs:
   tomc:
     name: Lint, compile and test (tomc)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +51,8 @@ jobs:
   vscode-extensions:
     name: Build and package VS Code extensions
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
