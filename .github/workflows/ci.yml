@@ -13,8 +13,6 @@ jobs:
   tomc:
     name: Lint, compile and test (tomc)
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -79,6 +77,7 @@ jobs:
         run: task vscode:package
 
       - name: Upload extension artifacts
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: vscode-extensions
