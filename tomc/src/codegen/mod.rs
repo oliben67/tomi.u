@@ -16,6 +16,7 @@
 //! 3. Add the variant to [`Backend`] enum
 //! 4. Update [`CodeGenerator::new`] to construct your backend
 
+pub mod python;
 pub mod rust;
 
 use crate::ast::{
@@ -29,6 +30,8 @@ use crate::span::Span;
 pub enum Backend {
     /// Generate Rust code
     Rust,
+    /// Generate Python code
+    Python,
     // Future backends:
     // C,
     // Cpp,
@@ -39,6 +42,7 @@ impl Backend {
     pub fn extension(&self) -> &'static str {
         match self {
             Backend::Rust => "rs",
+            Backend::Python => "py",
             // Backend::C => "c",
             // Backend::Cpp => "cpp",
         }
@@ -48,6 +52,7 @@ impl Backend {
     pub fn name(&self) -> &'static str {
         match self {
             Backend::Rust => "Rust",
+            Backend::Python => "Python",
             // Backend::C => "C",
             // Backend::Cpp => "C++",
         }
@@ -145,6 +150,7 @@ impl CodeGenerator {
     pub fn generate(&self, module: &Module) -> Result<String, CompileError> {
         let mut backend: Box<dyn BackendCodegen> = match self.backend_type {
             Backend::Rust => Box::new(rust::RustBackend::new()),
+            Backend::Python => Box::new(python::PythonBackend::new()),
         };
         backend.set_config(self.config.clone());
         backend.generate_module(module)

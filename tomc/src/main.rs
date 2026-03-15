@@ -107,12 +107,15 @@ struct Cli {
 enum Target {
     /// Generate Rust source code (.rs)
     Rust,
+    /// Generate Python source code (.py)
+    Python,
 }
 
 impl fmt::Display for Target {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Target::Rust => write!(f, "rust"),
+            Target::Python => write!(f, "python"),
         }
     }
 }
@@ -121,6 +124,7 @@ impl From<Target> for Backend {
     fn from(t: Target) -> Self {
         match t {
             Target::Rust => Backend::Rust,
+            Target::Python => Backend::Python,
         }
     }
 }
@@ -641,99 +645,173 @@ fn main() -> ExitCode {
     // -----------------------------------------------------------------
     let stem = input.file_stem().unwrap_or_default().to_string_lossy().to_string();
 
-    // ---- emit: code (Rust source) ----
+    // ---- emit: code (source) ----
+    let ext = backend.extension();
     if emit.code && !emit.bin {
-        let rs_path = cli.output.clone().unwrap_or_else(|| PathBuf::from(format!("{stem}.rs")));
-        if let Err(e) = std::fs::write(&rs_path, &output_code) {
-            eprintln!("{}: cannot write `{}`: {}", "error".red().bold(), rs_path.display(), e);
+        let code_path =
+            cli.output.clone().unwrap_or_else(|| PathBuf::from(format!("{stem}.{ext}")));
+        if let Err(e) = std::fs::write(&code_path, &output_code) {
+            eprintln!("{}: cannot write `{}`: {}", "error".red().bold(), code_path.display(), e);
             return ExitCode::FAILURE;
         }
-        println!("{} {} → {}", "✓".green().bold(), input.display(), rs_path.display());
+        println!("{} {} → {}", "✓".green().bold(), input.display(), code_path.display());
     }
 
-    // ---- emit: bin (native binary via rustc) ----
+    // ---- emit: bin (native binary via backend toolchain) ----
     if emit.bin {
-        // Intermediate .rs: temp file unless user also asked for --emit code
-        let rs_path = if emit.code {
-            PathBuf::from(format!("{stem}.rs"))
-        } else {
-            std::env::temp_dir().join(format!("tomc_{}_{}.rs", stem, std::process::id()))
-        };
+        match cli.target {
+            Target::Rust => {
+                // Intermediate .rs: temp file unless user also asked for --emit code
+                let rs_path = if emit.code {
+                    PathBuf::from(format!("{stem}.rs"))
+                } else {
+                    std::env::temp_dir().join(format!("tomc_{}_{}.rs", stem, std::process::id()))
+                };
 
-        if let Err(e) = std::fs::write(&rs_path, &output_code) {
-            eprintln!(
-                "{}: cannot write intermediate `{}`: {}",
-                "error".red().bold(),
-                rs_path.display(),
-                e
-            );
-            return ExitCode::FAILURE;
-        }
+                if let Err(e) = std::fs::write(&rs_path, &output_code) {
+                    eprintln!(
+                        "{}: cannot write intermediate `{}`: {}",
+                        "error".red().bold(),
+                        rs_path.display(),
+                        e
+                    );
+                    return ExitCode::FAILURE;
+                }
 
-        if emit.code && cli.verbose {
-            eprintln!("{} wrote Rust source → {}", "info:".cyan().bold(), rs_path.display());
-        }
+                if emit.code && cli.verbose {
+                    eprintln!(
+                        "{} wrote Rust source → {}",
+                        "info:".cyan().bold(),
+                        rs_path.display()
+                    );
+                }
 
-        // Binary output path
-        let bin_path = cli.output.clone().unwrap_or_else(|| {
-            if cfg!(windows) { PathBuf::from(format!("{stem}.exe")) } else { PathBuf::from(&stem) }
-        });
+                // Binary output path
+                let bin_path = cli.output.clone().unwrap_or_else(|| {
+                    if cfg!(windows) {
+                        PathBuf::from(format!("{stem}.exe"))
+                    } else {
+                        PathBuf::from(&stem)
+                    }
+                });
 
-        if cli.verbose {
-            eprintln!("{} invoking rustc → {}", "info:".cyan().bold(), bin_path.display());
-        }
+                if cli.verbose {
+                    eprintln!("{} invoking rustc → {}", "info:".cyan().bold(), bin_path.display());
+                }
 
-        let mut rustc_cmd = Command::new("rustc");
-        rustc_cmd
-            .arg(&rs_path)
-            .arg("-o")
-            .arg(&bin_path)
-            .arg(format!("-Copt-level={}", codegen_cfg.opt_level));
+                let mut rustc_cmd = Command::new("rustc");
+                rustc_cmd
+                    .arg(&rs_path)
+                    .arg("-o")
+                    .arg(&bin_path)
+                    .arg(format!("-Copt-level={}", codegen_cfg.opt_level));
 
-        if codegen_cfg.lto {
-            rustc_cmd.arg("-Clto=yes");
-        }
-        if !codegen_cfg.overflow_checks {
-            rustc_cmd.arg("-Coverflow-checks=no");
-        }
-        if codegen_cfg.debug_info {
-            rustc_cmd.arg("-Cdebuginfo=2");
-        }
+                if codegen_cfg.lto {
+                    rustc_cmd.arg("-Clto=yes");
+                }
+                if !codegen_cfg.overflow_checks {
+                    rustc_cmd.arg("-Coverflow-checks=no");
+                }
+                if codegen_cfg.debug_info {
+                    rustc_cmd.arg("-Cdebuginfo=2");
+                }
 
-        match cli.album_type {
-            AlbumType::Lib => {
-                rustc_cmd.arg("--crate-type").arg("rlib");
-            }
-            AlbumType::Bin => {}
-        }
+                match cli.album_type {
+                    AlbumType::Lib => {
+                        rustc_cmd.arg("--crate-type").arg("rlib");
+                    }
+                    AlbumType::Bin => {}
+                }
 
-        let rustc_out = match rustc_cmd.output() {
-            Ok(o) => o,
-            Err(e) => {
-                eprintln!("{}: failed to invoke rustc: {e}", "error".red().bold());
-                eprintln!("  Make sure rustc is installed and on your PATH.");
+                let rustc_out = match rustc_cmd.output() {
+                    Ok(o) => o,
+                    Err(e) => {
+                        eprintln!("{}: failed to invoke rustc: {e}", "error".red().bold());
+                        eprintln!("  Make sure rustc is installed and on your PATH.");
+                        if !emit.code {
+                            let _ = std::fs::remove_file(&rs_path);
+                        }
+                        return ExitCode::FAILURE;
+                    }
+                };
+
+                if !rustc_out.status.success() {
+                    eprintln!(
+                        "{}: rustc error while compiling generated code:",
+                        "error".red().bold()
+                    );
+                    eprintln!("{}", String::from_utf8_lossy(&rustc_out.stderr));
+                    if !emit.code {
+                        let _ = std::fs::remove_file(&rs_path);
+                    }
+                    return ExitCode::FAILURE;
+                }
+
+                // Clean up temp .rs unless user also wanted code
                 if !emit.code {
                     let _ = std::fs::remove_file(&rs_path);
                 }
-                return ExitCode::FAILURE;
+
+                println!("{} {} → {}", "✓".green().bold(), input.display(), bin_path.display());
             }
-        };
+            Target::Python => {
+                // Write the .py file
+                let py_path = if emit.code {
+                    PathBuf::from(format!("{stem}.py"))
+                } else {
+                    std::env::temp_dir().join(format!("tomc_{}_{}.py", stem, std::process::id()))
+                };
 
-        if !rustc_out.status.success() {
-            eprintln!("{}: rustc error while compiling generated code:", "error".red().bold());
-            eprintln!("{}", String::from_utf8_lossy(&rustc_out.stderr));
-            if !emit.code {
-                let _ = std::fs::remove_file(&rs_path);
+                if let Err(e) = std::fs::write(&py_path, &output_code) {
+                    eprintln!(
+                        "{}: cannot write `{}`: {}",
+                        "error".red().bold(),
+                        py_path.display(),
+                        e
+                    );
+                    return ExitCode::FAILURE;
+                }
+
+                // Run with python3
+                if cli.verbose {
+                    eprintln!("{} invoking python3 → {}", "info:".cyan().bold(), py_path.display());
+                }
+
+                let py_out = match Command::new("python3").arg(&py_path).output() {
+                    Ok(o) => o,
+                    Err(e) => {
+                        eprintln!("{}: failed to invoke python3: {e}", "error".red().bold());
+                        eprintln!("  Make sure python3 is installed and on your PATH.");
+                        if !emit.code {
+                            let _ = std::fs::remove_file(&py_path);
+                        }
+                        return ExitCode::FAILURE;
+                    }
+                };
+
+                if !py_out.stdout.is_empty() {
+                    print!("{}", String::from_utf8_lossy(&py_out.stdout));
+                }
+
+                if !py_out.status.success() {
+                    eprintln!(
+                        "{}: python3 error while running generated code:",
+                        "error".red().bold()
+                    );
+                    eprintln!("{}", String::from_utf8_lossy(&py_out.stderr));
+                    if !emit.code {
+                        let _ = std::fs::remove_file(&py_path);
+                    }
+                    return ExitCode::FAILURE;
+                }
+
+                if !emit.code {
+                    let _ = std::fs::remove_file(&py_path);
+                }
+
+                println!("{} {} → executed via python3", "✓".green().bold(), input.display());
             }
-            return ExitCode::FAILURE;
         }
-
-        // Clean up temp .rs unless user also wanted code
-        if !emit.code {
-            let _ = std::fs::remove_file(&rs_path);
-        }
-
-        println!("{} {} → {}", "✓".green().bold(), input.display(), bin_path.display());
     }
 
     if cli.verbose {
