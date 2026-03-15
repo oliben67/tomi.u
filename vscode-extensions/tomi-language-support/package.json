@@ -4,7 +4,7 @@
   "description": "Intelligent Tomi language support with syntax highlighting, type checking, and IntelliSense",
   "version": "0.1.0",
   "publisher": "tomi-lang",
-  "icon": "images/tomi-icon.svg",
+  "icon": "images/tomi-icon.png",
   "engines": {
     "vscode": "^1.74.0"
   },
